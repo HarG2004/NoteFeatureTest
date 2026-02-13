@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Tutor Notes Feedback Demo</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="page">
+    <header class="page-header">
+      <h1>AI Tutor: Feedback on Student Notes</h1>
+      <p class="subtitle">Static GitHub Pages demo with preset note examples and predetermined AI responses.</p>
+    </header>
+
+    <section class="controls" aria-label="Demo controls">
+      <h2>Choose a notes example</h2>
+      <div id="presetSelector" class="preset-selector" role="group" aria-label="Choose a notes example"></div>
+      <div class="action-buttons">
+        <button id="feedbackBtn" type="button">Get AI feedback</button>
+        <button id="resetBtn" type="button" class="secondary">Reset</button>
+      </div>
+    </section>
+
+    <section class="layout-grid" aria-label="Lesson and AI chat layout">
+      <div class="left-column">
+        <article class="lesson-card">
+          <h2 id="lessonTitle"></h2>
+          <p id="lessonParagraph"></p>
+        </article>
+
+        <section class="notes-card">
+          <h2>Student Notes</h2>
+          <textarea id="notesText" readonly aria-label="Student notes"></textarea>
+        </section>
+      </div>
+
+      <div class="right-column">
+        <section class="phone" aria-label="AI tutor messages">
+          <div class="phone-header">AI Tutor</div>
+          <div id="chatArea" class="chat-area" aria-live="polite"></div>
+        </section>
+      </div>
+    </section>
+
+    <section class="feedback-section" aria-label="Demo feedback form">
+      <h2>Feedback</h2>
+      <p>Share feedback on this demo experience.</p>
+      <iframe
+        id="feedbackIframe"
+        title="Feedback form"
+        loading="lazy"
+        referrerpolicy="no-referrer-when-downgrade"
+      ></iframe>
+      <p>
+        <a id="feedbackLink" class="link-button" target="_blank" rel="noopener noreferrer">Open feedback form</a>
+      </p>
+    </section>
+  </main>
+
+  <script src="demoData.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
