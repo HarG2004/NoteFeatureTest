@@ -8,6 +8,8 @@
   const resetBtn = document.getElementById("resetBtn");
   const explanationListEl = document.getElementById("explanationList");
   const bonusSignalEl = document.getElementById("bonusSignal");
+  const feedbackIframeEl = document.getElementById("feedbackIframe");
+  const feedbackOpenLinkEl = document.getElementById("feedbackOpenLink");
 
   function normalizeText(text) {
     return text
@@ -266,6 +268,16 @@
   function init() {
     lessonTitleEl.textContent = DEMO.lessonTitle;
     lessonParagraphEl.textContent = DEMO.lessonParagraph;
+
+    if (DEMO.googleForm) {
+      if (feedbackIframeEl) {
+        feedbackIframeEl.src = DEMO.googleForm.iframeSrc;
+      }
+
+      if (feedbackOpenLinkEl) {
+        feedbackOpenLinkEl.href = DEMO.googleForm.openUrl;
+      }
+    }
 
     feedbackBtn.addEventListener("click", analyzeAndRespond);
     resetBtn.addEventListener("click", resetDemo);
