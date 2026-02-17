@@ -1,5 +1,4 @@
 (function () {
-  const MAX_SUGGESTION_POINTS = 2;
 
   const lessonTitleEl = document.getElementById("lessonTitle");
   const lessonParagraphEl = document.getElementById("lessonParagraph");
@@ -153,18 +152,12 @@
       ...missingGroups.filter((group) => !DEMO.prioritySuggestionIds.includes(group.id))
     ];
 
-    return priorityFirst.slice(0, MAX_SUGGESTION_POINTS).map((group) => {
+    return priorityFirst.map((group) => {
       switch (group.id) {
         case "hypothesis":
           return "You might add a clear hypothesis or prediction (for example, 'If..., then...').";
-        case "experiment":
-          return "One helpful detail is the experiment procedure or method used to test the idea.";
-        case "data":
-          return "You might add how observations or data were collected and recorded.";
-        case "analysis":
-          return "One helpful detail is how the results were analyzed or interpreted.";
-        case "conclusion":
-          return "You might add a conclusion that says whether the hypothesis was supported.";
+        case "evidence":
+          return "One helpful detail is how you tested the idea and what evidence/data you recorded.";
         default:
           return `You might add a note about ${group.label.toLowerCase()}.`;
       }
@@ -178,18 +171,11 @@
 
     const lines = ["Suggested rewrite template:"];
     const map = {
-      question: "- Testable question/problem: ...",
       hypothesis: "- Hypothesis/prediction: ...",
-      experiment: "- Experiment/method: ...",
-      variables: "- Variables/controls: ...",
-      data: "- Data/observations: ...",
-      analysis: "- Analysis of results: ...",
-      conclusion: "- Conclusion (supported or not): ...",
-      iteration: "- Revision/next test: ...",
-      importance: "- Why it matters: ..."
+      evidence: "- How you tested it + what evidence/data you collected: ..."
     };
 
-    missingGroups.slice(0, MAX_SUGGESTION_POINTS).forEach((group) => lines.push(map[group.id]));
+    missingGroups.forEach((group) => lines.push(map[group.id]));
     return lines.join("\n");
   }
 
@@ -201,7 +187,7 @@
     if (!trimmed) {
       return [
         "Great job starting this activity. When you're ready, write a few bullets about the scientific method and I’ll give gentle feedback.",
-        "A helpful start is: testable question, hypothesis, experiment, data, analysis, and conclusion."
+        "A helpful start is: (1) your hypothesis/prediction and (2) how you tested it with evidence."
       ];
     }
 
@@ -223,7 +209,7 @@
 
     if (veryShort) {
       messages.push(
-        "Your notes are a bit brief right now. You might add 1–2 more key parts, especially hypothesis and experiment."
+        "Your notes are a bit brief right now. Try adding both main points: your hypothesis and your evidence from testing."
       );
     } else {
       const suggestions = buildSuggestions(missingGroups);

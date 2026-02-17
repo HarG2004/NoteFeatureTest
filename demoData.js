@@ -5,21 +5,6 @@ const DEMO = {
   greeting: "Hi! Write your notes and I’ll give gentle feedback.",
   rubric: [
     {
-      id: "question",
-      label: "Testable question / problem",
-      whyItMatters:
-        "A clear, testable question focuses the investigation so the experiment can produce useful evidence.",
-      keywords: [
-        "question",
-        "testable question",
-        "research question",
-        "problem",
-        "investigate",
-        "ask why",
-        "ask how"
-      ]
-    },
-    {
       id: "hypothesis",
       label: "Hypothesis / prediction",
       whyItMatters:
@@ -27,111 +12,26 @@ const DEMO = {
       keywords: ["hypothesis", "predict", "prediction", "educated guess", "if then"]
     },
     {
-      id: "experiment",
-      label: "Experiment / method / procedure",
+      id: "evidence",
+      label: "Experiment + evidence",
       whyItMatters:
-        "A planned method makes testing organized and helps others understand what was done.",
+        "A clear method plus collected evidence shows how the idea was tested and what happened.",
       keywords: [
         "experiment",
         "test",
         "method",
         "procedure",
-        "steps",
         "trial",
-        "materials"
-      ]
-    },
-    {
-      id: "variables",
-      label: "Variables / controls",
-      whyItMatters:
-        "Identifying independent/dependent variables and controls helps make comparisons fair.",
-      keywords: [
-        "variable",
-        "independent variable",
-        "dependent variable",
-        "control",
-        "control group",
-        "constant",
-        "fair test"
-      ]
-    },
-    {
-      id: "data",
-      label: "Observations / data collection",
-      whyItMatters:
-        "Collecting observations and measurements provides the evidence needed for conclusions.",
-      keywords: [
-        "observe",
-        "observation",
-        "observed",
         "data",
         "evidence",
+        "observe",
+        "observation",
         "measure",
         "record"
       ]
-    },
-    {
-      id: "analysis",
-      label: "Analysis / interpreting results",
-      whyItMatters:
-        "Analysis explains what the data means instead of just listing numbers.",
-      keywords: [
-        "analyze",
-        "analysis",
-        "interpret",
-        "results",
-        "pattern",
-        "compare",
-        "graph"
-      ]
-    },
-    {
-      id: "conclusion",
-      label: "Conclusion / whether hypothesis supported",
-      whyItMatters:
-        "A conclusion connects findings back to the hypothesis and states what was learned.",
-      keywords: [
-        "conclude",
-        "conclusion",
-        "supported",
-        "not supported",
-        "final result",
-        "therefore"
-      ]
-    },
-    {
-      id: "iteration",
-      label: "Iteration / revise and repeat",
-      whyItMatters:
-        "Revising and repeating improves the quality of evidence and strengthens understanding.",
-      keywords: [
-        "revise",
-        "repeat",
-        "again",
-        "improve",
-        "iterate",
-        "retry",
-        "refine"
-      ]
-    },
-    {
-      id: "importance",
-      label: "Why it’s important",
-      whyItMatters:
-        "The scientific method builds reliable, reproducible, evidence-based knowledge and helps reduce bias.",
-      keywords: [
-        "bias",
-        "reliable",
-        "reproducible",
-        "evidence based",
-        "trustworthy",
-        "objective",
-        "knowledge"
-      ]
     }
   ],
-  prioritySuggestionIds: ["hypothesis", "experiment", "data", "analysis", "conclusion"],
+  prioritySuggestionIds: ["hypothesis", "evidence"],
   stepNumbers: {
     digits: ["4", "5", "6", "7", "8", "9", "10"],
     words: [
