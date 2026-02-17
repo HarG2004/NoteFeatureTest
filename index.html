@@ -10,28 +10,35 @@
   <main class="page">
     <header class="page-header">
       <h1>AI Tutor: Feedback on Student Notes</h1>
-      <p class="subtitle">Static GitHub Pages demo with preset note examples and predetermined AI responses.</p>
+      <p class="subtitle">Write your own notes, then get supportive feedback in a phone-style chat.</p>
     </header>
 
-    <section class="controls" aria-label="Demo controls">
-      <h2>Choose a notes example</h2>
-      <div id="presetSelector" class="preset-selector" role="group" aria-label="Choose a notes example"></div>
-      <div class="action-buttons">
-        <button id="feedbackBtn" type="button">Get AI feedback</button>
-        <button id="resetBtn" type="button" class="secondary">Reset</button>
-      </div>
-    </section>
-
-    <section class="layout-grid" aria-label="Lesson and AI chat layout">
+    <section class="layout-grid" aria-label="Lesson, notes, and AI chat layout">
       <div class="left-column">
-        <article class="lesson-card">
+        <article class="lesson-card" aria-labelledby="lessonTitle">
           <h2 id="lessonTitle"></h2>
           <p id="lessonParagraph"></p>
         </article>
 
-        <section class="notes-card">
+        <section class="notes-card" aria-label="Student notes and explanation">
           <h2>Student Notes</h2>
-          <textarea id="notesText" readonly aria-label="Student notes"></textarea>
+          <label for="notesText" class="notes-label">Student Notes</label>
+          <textarea
+            id="notesText"
+            aria-label="Student notes"
+            placeholder="Try 3–6 bullets about the scientific method: question, hypothesis, experiment, data, analysis, conclusion, and why it matters."
+          ></textarea>
+
+          <div class="action-buttons">
+            <button id="feedbackBtn" type="button">Get AI feedback</button>
+            <button id="resetBtn" type="button" class="secondary">Reset</button>
+          </div>
+
+          <section class="explanation" aria-live="polite" aria-labelledby="explanationHeading">
+            <h3 id="explanationHeading">What the AI looked for (and why)</h3>
+            <ul id="explanationList" class="explanation-list"></ul>
+            <p id="bonusSignal" class="bonus-signal"></p>
+          </section>
         </section>
       </div>
 
@@ -43,19 +50,9 @@
       </div>
     </section>
 
-    <section class="feedback-section" aria-label="Demo feedback form">
-      <h2>Feedback</h2>
-      <p>Share feedback on this demo experience.</p>
-      <iframe
-        id="feedbackIframe"
-        title="Feedback form"
-        loading="lazy"
-        referrerpolicy="no-referrer-when-downgrade"
-      ></iframe>
-      <p>
-        <a id="feedbackLink" class="link-button" target="_blank" rel="noopener noreferrer">Open feedback form</a>
-      </p>
-    </section>
+    <footer class="footer-note">
+      This demo uses simple keyword matching to simulate feedback (no real AI model).
+    </footer>
   </main>
 
   <script src="demoData.js"></script>
