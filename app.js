@@ -61,25 +61,7 @@
     });
   }
 
-  function detectStepCountBonus(inputText) {
-    const normalizedText = normalizeText(inputText);
-    const tokens = normalizedText.split(" ");
-    const numberTokens = new Set([...DEMO.stepNumbers.digits, ...DEMO.stepNumbers.words]);
-    const anchorTokens = new Set(DEMO.stepNumbers.anchors);
-
-    for (let i = 0; i < tokens.length; i += 1) {
-      if (!numberTokens.has(tokens[i])) continue;
-      for (let offset = -3; offset <= 3; offset += 1) {
-        const neighbor = tokens[i + offset];
-        if (anchorTokens.has(neighbor)) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
-  function renderExplanation(results, hasAnalyzed, stepBonusDetected) {
+  function renderExplanation(results, hasAnalyzed) {
     explanationListEl.innerHTML = "";
 
     results.forEach((item) => {
@@ -113,13 +95,7 @@
       explanationListEl.appendChild(li);
     });
 
-    if (!hasAnalyzed) {
-      bonusSignalEl.textContent = "Bonus signal: mention how many steps are in the process (for example, '6 steps').";
-    } else if (stepBonusDetected) {
-      bonusSignalEl.textContent = "Bonus signal detected ✅: you mentioned a number of steps/process.";
-    } else {
-      bonusSignalEl.textContent = "Bonus signal not detected ➕: you might mention a step count (for example, '6 steps').";
-    }
+    bonusSignalEl.textContent = "AI check scope: only these two note targets are scored (hypothesis/prediction and experiment + evidence).";
   }
 
   function addBubble(text, variant) {
@@ -181,7 +157,7 @@
     return lines.join("\n");
   }
 
-  function buildFeedbackMessages(inputText, results, stepBonusDetected) {
+  function buildFeedbackMessages(inputText, results) {
     const trimmed = inputText.trim();
     const detectedGroups = results.filter((group) => group.detected);
     const missingGroups = results.filter((group) => !group.detected);
@@ -229,20 +205,13 @@
       messages.push(templateMessage);
     }
 
-    if (!stepBonusDetected) {
-      messages.push("Try adding one sentence about why the method matters and, if you want, mention how many steps are in the process.");
-    } else {
-      messages.push("Nice touch mentioning steps in the process.");
-    }
-
-    return messages.slice(0, 4);
+    return messages.slice(0, 3);
   }
 
   function analyzeAndRespond() {
     const inputText = notesTextEl.value;
     const results = detectConcepts(inputText);
-    const stepBonusDetected = detectStepCountBonus(inputText);
-    const messages = buildFeedbackMessages(inputText, results, stepBonusDetected);
+    const messages = buildFeedbackMessages(inputText, results);
 
     feedbackBtn.disabled = true;
     showTyping();
@@ -251,7 +220,7 @@
     window.setTimeout(() => {
       chatAreaEl.innerHTML = "";
       messages.forEach((message) => addBubble(message));
-      renderExplanation(results, true, stepBonusDetected);
+      renderExplanation(results, true);
       feedbackBtn.disabled = false;
     }, waitMs);
   }
@@ -262,7 +231,7 @@
     renderGreeting();
 
     const neutralResults = DEMO.rubric.map((group) => ({ ...group, detected: false }));
-    renderExplanation(neutralResults, false, false);
+    renderExplanation(neutralResults, false);
   }
 
   function init() {
