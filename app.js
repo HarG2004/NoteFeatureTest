@@ -1,4 +1,6 @@
 (function () {
+  const MAX_SUGGESTION_POINTS = 2;
+
   const lessonTitleEl = document.getElementById("lessonTitle");
   const lessonParagraphEl = document.getElementById("lessonParagraph");
   const notesTextEl = document.getElementById("notesText");
@@ -151,7 +153,7 @@
       ...missingGroups.filter((group) => !DEMO.prioritySuggestionIds.includes(group.id))
     ];
 
-    return priorityFirst.slice(0, 4).map((group) => {
+    return priorityFirst.slice(0, MAX_SUGGESTION_POINTS).map((group) => {
       switch (group.id) {
         case "hypothesis":
           return "You might add a clear hypothesis or prediction (for example, 'If..., then...').";
@@ -187,7 +189,7 @@
       importance: "- Why it matters: ..."
     };
 
-    missingGroups.slice(0, 5).forEach((group) => lines.push(map[group.id]));
+    missingGroups.slice(0, MAX_SUGGESTION_POINTS).forEach((group) => lines.push(map[group.id]));
     return lines.join("\n");
   }
 
@@ -221,7 +223,7 @@
 
     if (veryShort) {
       messages.push(
-        "Your notes are a bit brief right now. You might add 2–3 more key parts, especially hypothesis, experiment, and data."
+        "Your notes are a bit brief right now. You might add 1–2 more key parts, especially hypothesis and experiment."
       );
     } else {
       const suggestions = buildSuggestions(missingGroups);
