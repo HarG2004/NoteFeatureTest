@@ -197,7 +197,9 @@
     const coverage = Math.round((detectedGroups.length / results.length) * 100);
 
     const firstMessageBase =
-      "Great job writing notes—here are a few suggestions to make them even stronger.";
+      coverage === 100
+        ? "Great job writing notes."
+        : "Great job writing notes—here are a few suggestions to make them even stronger.";
     let strengthPart = "";
 
     if (detectedGroups.length > 0) {
@@ -218,9 +220,7 @@
       if (suggestions.length) {
         messages.push(suggestions.join(" "));
       } else {
-        messages.push(
-          `Nice coverage: you included all major parts of the method (${coverage}%). You could still add a concrete example to deepen understanding.`
-        );
+        messages.push(`Nice coverage: you included all major parts of the method (${coverage}%).`);
       }
     }
 
@@ -232,7 +232,7 @@
     if (!stepBonusDetected) {
       messages.push("Try adding one sentence about why the method matters and, if you want, mention how many steps are in the process.");
     } else {
-      messages.push("Nice touch mentioning steps in the process. Try adding one sentence about why the method matters in real life.");
+      messages.push("Nice touch mentioning steps in the process.");
     }
 
     return messages.slice(0, 4);
