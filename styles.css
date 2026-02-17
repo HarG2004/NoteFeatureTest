@@ -97,7 +97,8 @@ button {
 }
 
 button:focus-visible,
-#notesText:focus-visible {
+#notesText:focus-visible,
+.feedback-actions a:focus-visible {
   outline: 2px solid var(--brand);
   outline-offset: 2px;
 }
@@ -231,6 +232,59 @@ button.secondary {
   }
 }
 
+.feedback-section {
+  margin-top: 1.5rem;
+  padding: 0.25rem 0 1rem;
+}
+
+.feedback-card {
+  max-width: 900px;
+  margin: 0 auto;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: 0 12px 24px rgba(31, 41, 55, 0.06);
+  padding: 1.25rem;
+}
+
+.feedback-card h2 {
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+}
+
+.feedback-card p {
+  margin-top: 0;
+  margin-bottom: 0.9rem;
+  color: var(--muted);
+}
+
+.feedback-actions {
+  margin-bottom: 1rem;
+}
+
+.feedback-actions a {
+  display: inline-block;
+  background: #eff6ff;
+  color: var(--brand-dark);
+  border: 1px solid #bfdbfe;
+  border-radius: 999px;
+  text-decoration: none;
+  font-weight: 600;
+  padding: 0.5rem 0.9rem;
+}
+
+.feedback-actions a:hover {
+  background: #dbeafe;
+}
+
+#feedbackIframe {
+  width: 100%;
+  height: 1000px;
+  border: 0;
+  border-radius: 10px;
+  background: #fff;
+}
+
 .footer-note {
   color: var(--muted);
   font-size: 0.92rem;
@@ -246,6 +300,34 @@ button.secondary {
   }
 
   .phone {
-    min-height: 460px;
+    min-height: 420px;
+  }
+
+  .feedback-card {
+    padding: 1rem;
+  }
+
+  #feedbackIframe {
+    height: 950px;
+  }
+}
+
+@media (max-width: 600px) {
+  .page {
+    padding: 0.8rem;
+  }
+
+  .lesson-card,
+  .notes-card,
+  .feedback-card {
+    padding: 0.85rem;
+  }
+
+  .action-buttons {
+    flex-wrap: wrap;
+  }
+
+  #feedbackIframe {
+    height: 900px;
   }
 }
