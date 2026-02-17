@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Tutor Notes Feedback Demo</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="page">
+    <header class="page-header">
+      <h1>AI Tutor: Feedback on Student Notes</h1>
+      <p class="subtitle">Write your own notes, then get supportive feedback based on key ideas in the scientific method.</p>
+    </header>
+
+    <section class="layout-grid" aria-label="Lesson and AI chat layout">
+      <div class="left-column">
+        <article class="lesson-card">
+          <h2 id="lessonTitle"></h2>
+          <p id="lessonParagraph"></p>
+        </article>
+
+        <section class="notes-card">
+          <h2>Student Notes</h2>
+          <label for="notesText" class="sr-only">Student Notes</label>
+          <textarea id="notesText" aria-label="Student notes"></textarea>
+
+          <div class="action-buttons">
+            <button id="feedbackBtn" type="button">Get AI feedback</button>
+            <button id="resetBtn" type="button" class="secondary">Reset</button>
+          </div>
+
+          <section class="explanation" aria-live="polite">
+            <h3>What the AI looked for (and why)</h3>
+            <ul id="explanationList" class="explanation-list"></ul>
+          </section>
+        </section>
+      </div>
+
+      <div class="right-column">
+        <section class="phone" aria-label="AI tutor messages">
+          <div class="phone-header">AI Tutor</div>
+          <div id="chatArea" class="chat-area" aria-live="polite"></div>
+        </section>
+      </div>
+    </section>
+
+    <footer class="footer-note">
+      This demo uses simple keyword matching to simulate feedback (no real AI model).
+    </footer>
+  </main>
+
+  <script src="demoData.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
