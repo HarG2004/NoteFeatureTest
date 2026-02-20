@@ -13,8 +13,6 @@ window.DEMO_DATA = {
     "Used to make decisions based on what can be observed and measured."
   ],
   notesPrompt: "Send me your notes. A few bullets is fine.",
-  bonusSuggestion:
-    "You can also add one short line about how evidence can strengthen a conclusion.",
   keyPoints: [
     {
       id: "clear-thinking-evidence",

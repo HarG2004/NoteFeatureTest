@@ -225,7 +225,6 @@
         messages.push("Suggestion: include how testing produced observations, data, or results.");
       }
 
-      messages.push(`Optional boost: ${data.bonusSuggestion}`);
       return messages;
     }
 
