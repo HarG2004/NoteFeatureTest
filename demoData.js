@@ -1,7 +1,7 @@
 window.DEMO_DATA = {
   topicName: "The Scientific Method",
   topicParagraph:
-    "The scientific method is a step-by-step way to answer questions using evidence. You start by asking a clear question and making a hypothesis, which is a testable prediction about what you think will happen. Then you run an experiment, keeping it fair so your test is reliable. During the experiment, you collect observations and data, such as measurements, counts, or notes. After that, you look at the results to see if your hypothesis was supported, and you can revise your idea and test again.",
+    "The scientific method is a structured process for learning how the world works by using observations, evidence, and careful testing.\nIt usually begins with a question and a hypothesis, then moves to experiments that are designed to be fair and repeatable.\n• It is useful because it helps people avoid guessing and make decisions based on reliable data instead.\n• It is also useful because results can be checked by others, which builds trust in scientific ideas.\nBy analyzing results and revising explanations, scientists can keep improving what we know over time.",
   greeting: "Ready to learn about the Scientific Method?",
   notReadyReply: "No worries. Tap Yes when you want to start.",
   readyReminder: "Please choose Yes or Not now.",

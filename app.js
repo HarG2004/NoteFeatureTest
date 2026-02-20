@@ -206,6 +206,7 @@
     const bulletMessage = data.teachingBullets.map((bullet) => `• ${bullet}`).join("\n");
     return [
       data.teachingIntro,
+      data.topicParagraph,
       bulletMessage,
       data.notesPrompt
     ];
