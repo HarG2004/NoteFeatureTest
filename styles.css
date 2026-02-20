@@ -277,7 +277,7 @@ button:focus-visible,
   color: var(--success);
 }
 
-.rubric-status.missing {
+.rubric-status.could-add {
   color: var(--warning);
 }
 

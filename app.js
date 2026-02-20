@@ -3,8 +3,7 @@
 
   const State = {
     GREETING: 0,
-    WAITING_FOR_NOTES: 1,
-    CONTINUE: 2
+    WAITING_FOR_NOTES: 1
   };
 
   const chatAreaEl = document.getElementById("chatArea");
@@ -71,9 +70,9 @@
       const status = document.createElement("span");
       status.className = `rubric-status ${item.status}`;
       if (item.status === "detected") {
-        status.textContent = "✅ Detected";
-      } else if (item.status === "missing") {
-        status.textContent = "➕ Missing";
+        status.textContent = "✅ Mentioned";
+      } else if (item.status === "could-add") {
+        status.textContent = "➕ Could add";
       } else {
         status.textContent = "• Not checked";
       }
@@ -172,32 +171,36 @@
         containsSynonym(tokensSet, normalizedText, synonym)
       )
         ? "detected"
-        : "missing"
+        : "could-add"
     }));
   }
 
   function buildNotesFeedback(results) {
     const detected = results.filter((item) => item.status === "detected");
-    const missing = results.filter((item) => item.status === "missing");
+    const couldAdd = results.filter((item) => item.status === "could-add");
 
-    const messages = ["Nice effort. Your notes are a strong start."];
+    if (couldAdd.length === 0) {
+      return [
+        "Great work—your notes include both key ideas.",
+        `To strengthen your notes even more, consider adding this optional detail: ${data.bonusSuggestion}`
+      ];
+    }
+
+    const messages = ["Nice start—one thing you might add is a little more detail."];
 
     if (detected.length > 0) {
-      messages.push("Great job including key science terms.");
+      messages.push("You already have a solid foundation in your notes.");
     }
 
-    if (missing.length === 0) {
-      messages.push("Awesome—you included both key points.");
-      return messages;
+    if (couldAdd.some((item) => item.id === "hypothesis-testable")) {
+      messages.push("To strengthen your notes, consider adding a hypothesis or testable prediction.");
     }
 
-    if (missing.some((item) => item.id === "hypothesis-testable")) {
-      messages.push("Add a hypothesis or testable prediction.");
+    if (couldAdd.some((item) => item.id === "evidence-testing")) {
+      messages.push("A helpful detail to include is how testing produced observations, data, or results.");
     }
 
-    if (missing.some((item) => item.id === "experiment-data")) {
-      messages.push("Add how you tested it and what data you observed.");
-    }
+    messages.push(`Optional boost: ${data.bonusSuggestion}`);
 
     return messages;
   }
@@ -225,6 +228,7 @@
       setQuickReplies([]);
       await sendAiMessages(buildTeachingSequence());
       conversationState = State.WAITING_FOR_NOTES;
+      setQuickReplies(["Send revised notes", "Restart"]);
       return;
     }
 
@@ -239,27 +243,27 @@
     const feedbackMessages = buildNotesFeedback(rubricStatus);
     await sendAiMessages(feedbackMessages);
 
-    conversationState = State.CONTINUE;
-    setQuickReplies(["Try again", "Restart lesson"]);
+    conversationState = State.WAITING_FOR_NOTES;
+    setQuickReplies(["Send revised notes", "Restart"]);
   }
 
-  async function handleContinueInput(rawInput) {
+  async function handleNotesModeInput(rawInput) {
     const input = rawInput.trim().toLowerCase();
 
-    if (input === "try again") {
-      conversationState = State.WAITING_FOR_NOTES;
-      setQuickReplies(["Try again", "Restart lesson"]);
-      await sendAiMessage("Nice revision mindset. Send your updated notes.");
-      return;
-    }
-
-    if (input === "restart lesson") {
+    if (input === "restart") {
       await restartLesson();
       return;
     }
 
-    await sendAiMessage("Choose Try again or Restart lesson.");
-    setQuickReplies(["Try again", "Restart lesson"]);
+    if (input === "send revised notes") {
+      await sendAiMessage("Go ahead! Send your revised notes when you're ready.");
+      conversationState = State.WAITING_FOR_NOTES;
+      setQuickReplies(["Send revised notes", "Restart"]);
+      messageInputEl.focus();
+      return;
+    }
+
+    await handleNotesSubmission(rawInput);
   }
 
   async function handleUserInput(rawInput) {
@@ -275,12 +279,7 @@
       return;
     }
 
-    if (conversationState === State.WAITING_FOR_NOTES) {
-      await handleNotesSubmission(text);
-      return;
-    }
-
-    await handleContinueInput(text);
+    await handleNotesModeInput(text);
   }
 
   async function restartLesson() {
