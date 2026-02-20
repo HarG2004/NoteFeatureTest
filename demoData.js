@@ -1,19 +1,20 @@
 window.DEMO_DATA = {
   topicName: "The Scientific Method",
-  topicParagraph:
-    "The scientific method is a structured process for learning how the world works by using observations, evidence, and careful testing.\nIt usually begins with a question and a hypothesis, then moves to experiments that are designed to be fair and repeatable.\n• It is useful because it helps people avoid guessing and make decisions based on reliable data instead.\n• It is also useful because results can be checked by others, which builds trust in scientific ideas.\nBy analyzing results and revising explanations, scientists can keep improving what we know over time.",
+  topicParagraph: "The scientific method is:",
   greeting: "Ready to learn about the Scientific Method?",
   notReadyReply: "No worries. Tap Yes when you want to start.",
   readyReminder: "Please choose Yes or Not now.",
-  teachingIntro: "Great! Here is the Scientific Method in simple steps.",
+  teachingIntro: "Great! Here is a quick summary.",
   teachingBullets: [
-    "Ask a clear question you can test.",
-    "Make a hypothesis, or a testable prediction.",
-    "Run a fair experiment to test your idea.",
-    "Record observations and data during the test.",
-    "Check results, then revise and test again if needed."
+    "A way to answer questions by using clear thinking and evidence.",
+    "Built around testable ideas that can be checked with observations or data.",
+    "Useful for reducing guesswork and making stronger conclusions.",
+    "Helps improve understanding by updating ideas when new results appear.",
+    "Used to make decisions based on what can be observed and measured."
   ],
   notesPrompt: "Send me your notes. A few bullets is fine.",
+  bonusSuggestion:
+    "You can also add one short line about how evidence can strengthen a conclusion.",
   keyPoints: [
     {
       id: "hypothesis-testable",
@@ -23,21 +24,24 @@ window.DEMO_DATA = {
         "predict",
         "prediction",
         "guess",
-        "testable"
+        "testable",
+        "expectation"
       ]
     },
     {
-      id: "experiment-data",
-      label: "Experiment + data/observations",
+      id: "evidence-testing",
+      label: "Evidence from testing + observations/data",
       synonyms: [
-        "experiment",
         "test",
+        "experiment",
         "trial",
         "measure",
         "observe",
         "observation",
+        "observations",
         "data",
-        "results"
+        "results",
+        "evidence"
       ]
     }
   ],
