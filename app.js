@@ -3,11 +3,8 @@
 
   const State = {
     GREETING: 0,
-    TEACHING_CONFIRM: 1,
-    UNDERSTANDING_CHECK: 2,
-    NOTES_INSTRUCTIONS: 3,
-    NOTES_MODE: 4,
-    CONTINUE: 5
+    WAITING_FOR_NOTES: 1,
+    CONTINUE: 2
   };
 
   const chatAreaEl = document.getElementById("chatArea");
@@ -23,7 +20,7 @@
   let rubricStatus = buildNeutralRubricStatus();
 
   function randomDelay() {
-    return 800 + Math.floor(Math.random() * 401);
+    return 1000 + Math.floor(Math.random() * 2001);
   }
 
   function normalizeText(value) {
@@ -41,7 +38,6 @@
 
   function containsSynonym(tokensSet, normalizedText, synonym) {
     const normalizedSynonym = normalizeText(synonym);
-
     if (!normalizedSynonym) {
       return false;
     }
@@ -62,7 +58,7 @@
   }
 
   function renderRubric() {
-    rubricTopicEl.textContent = `Topic: ${data.topic}`;
+    rubricTopicEl.textContent = `Topic: ${data.topicName}`;
     rubricListEl.innerHTML = "";
 
     rubricStatus.forEach((item) => {
@@ -74,7 +70,6 @@
 
       const status = document.createElement("span");
       status.className = `rubric-status ${item.status}`;
-
       if (item.status === "detected") {
         status.textContent = "✅ Detected";
       } else if (item.status === "missing") {
@@ -92,24 +87,53 @@
     chatAreaEl.scrollTop = chatAreaEl.scrollHeight;
   }
 
+  function createAvatar(sender) {
+    const avatar = document.createElement("span");
+    avatar.className = `avatar ${sender}`;
+    avatar.setAttribute("aria-hidden", "true");
+    avatar.textContent = sender === "ai" ? "AI" : "You";
+    return avatar;
+  }
+
   function addMessage(text, sender) {
+    const row = document.createElement("div");
+    row.className = `message-row ${sender}`;
+
     const bubble = document.createElement("div");
     bubble.className = `bubble ${sender}`;
     bubble.textContent = text;
-    chatAreaEl.appendChild(bubble);
+
+    if (sender === "ai") {
+      row.append(createAvatar("ai"), bubble);
+    } else {
+      row.append(bubble, createAvatar("user"));
+    }
+
+    chatAreaEl.appendChild(row);
     scrollChatToBottom();
   }
 
   function addTypingBubble() {
+    const row = document.createElement("div");
+    row.className = "message-row ai typing-row";
+
     const bubble = document.createElement("div");
     bubble.className = "bubble ai typing-bubble";
-    const dots = document.createElement("span");
-    dots.className = "typing-dots";
-    dots.textContent = "...";
-    bubble.appendChild(dots);
-    chatAreaEl.appendChild(bubble);
+
+    const dotsWrap = document.createElement("span");
+    dotsWrap.className = "typing-dots";
+
+    for (let i = 0; i < 3; i += 1) {
+      const dot = document.createElement("span");
+      dot.className = "dot";
+      dotsWrap.appendChild(dot);
+    }
+
+    bubble.appendChild(dotsWrap);
+    row.append(createAvatar("ai"), bubble);
+    chatAreaEl.appendChild(row);
     scrollChatToBottom();
-    return bubble;
+    return row;
   }
 
   async function sendAiMessage(text) {
@@ -141,66 +165,53 @@
     const normalizedText = normalizeText(text);
     const tokensSet = new Set(tokenize(text));
 
-    return data.keyPoints.map((point) => {
-      const detected = point.synonyms.some((synonym) =>
+    return data.keyPoints.map((point) => ({
+      id: point.id,
+      label: point.label,
+      status: point.synonyms.some((synonym) =>
         containsSynonym(tokensSet, normalizedText, synonym)
-      );
-
-      return {
-        id: point.id,
-        label: point.label,
-        status: detected ? "detected" : "missing"
-      };
-    });
+      )
+        ? "detected"
+        : "missing"
+    }));
   }
 
   function buildNotesFeedback(results) {
-    const missing = results.filter((item) => item.status === "missing");
     const detected = results.filter((item) => item.status === "detected");
+    const missing = results.filter((item) => item.status === "missing");
 
-    const messages = [
-      "Great job writing notes—here are a couple suggestions to make them even stronger."
-    ];
+    const messages = ["Nice effort. Your notes are a strong start."];
 
     if (detected.length > 0) {
-      const strengths = detected.map((item) => item.label.toLowerCase()).join(" and ");
-      messages.push(`Nice work including ${strengths}.`);
+      messages.push("Great job including key science terms.");
     }
 
     if (missing.length === 0) {
-      messages.push("You captured both key ideas I was looking for. ✅");
+      messages.push("Awesome—you included both key points.");
       return messages;
     }
 
-    const advice = missing
-      .map((item) => {
-        if (item.id === "hypothesis") {
-          return "add a clear hypothesis or prediction";
-        }
-
-        return "mention how the experiment was run and what data/observations were recorded";
-      })
-      .join(" and ");
-
-    messages.push(`To strengthen your notes, ${advice}.`);
-
-    const rewritePieces = [];
-    if (missing.some((item) => item.id === "hypothesis")) {
-      rewritePieces.push("Hypothesis: If ___, then ___");
+    if (missing.some((item) => item.id === "hypothesis-testable")) {
+      messages.push("Add a hypothesis or testable prediction.");
     }
 
     if (missing.some((item) => item.id === "experiment-data")) {
-      rewritePieces.push("Experiment/data: We tested by ___ and observed ___");
+      messages.push("Add how you tested it and what data you observed.");
     }
 
-    if (rewritePieces.length) {
-      messages.push(`Suggested rewrite: ${rewritePieces.join("; ")}.`);
-    }
-
-    return messages.slice(0, 4);
+    return messages;
   }
 
-  async function handleReadinessInput(rawInput) {
+  function buildTeachingSequence() {
+    const bulletMessage = data.teachingBullets.map((bullet) => `• ${bullet}`).join("\n");
+    return [
+      data.teachingIntro,
+      bulletMessage,
+      data.notesPrompt
+    ];
+  }
+
+  async function handleGreetingInput(rawInput) {
     const input = rawInput.trim().toLowerCase();
 
     if (input === "not now") {
@@ -210,41 +221,14 @@
     }
 
     if (input === "yes") {
-      conversationState = State.TEACHING_CONFIRM;
       setQuickReplies([]);
-      await sendAiMessages([
-        data.teachingLead,
-        ...data.teachingMessages
-      ]);
-      await sendAiMessage(data.understandingQuestion);
-      conversationState = State.UNDERSTANDING_CHECK;
-      setQuickReplies(["I got it", "Repeat it"]);
+      await sendAiMessages(buildTeachingSequence());
+      conversationState = State.WAITING_FOR_NOTES;
       return;
     }
 
     await sendAiMessage(data.readyReminder);
-    setQuickReplies(conversationState === State.GREETING ? ["Yes", "Not now"] : ["Yes"]);
-  }
-
-  async function handleUnderstandingInput(rawInput) {
-    const input = rawInput.trim().toLowerCase();
-
-    if (input === "i got it") {
-      await sendAiMessage(data.understandingConfirm);
-      await sendAiMessage(data.notesPrompt);
-      conversationState = State.NOTES_INSTRUCTIONS;
-      setQuickReplies(["Yes"]);
-      return;
-    }
-
-    if (input === "repeat it") {
-      await sendAiMessages([data.understandingRepeat, data.understandingQuestion]);
-      setQuickReplies(["I got it", "Repeat it"]);
-      return;
-    }
-
-    await sendAiMessage(data.understandingReminder);
-    setQuickReplies(["I got it", "Repeat it"]);
+    setQuickReplies(["Yes", "Not now"]);
   }
 
   async function handleNotesSubmission(text) {
@@ -262,9 +246,9 @@
     const input = rawInput.trim().toLowerCase();
 
     if (input === "try again") {
-      conversationState = State.NOTES_MODE;
+      conversationState = State.WAITING_FOR_NOTES;
       setQuickReplies(["Try again", "Restart lesson"]);
-      await sendAiMessage("Awesome effort. Send your revised notes and I’ll check them again.");
+      await sendAiMessage("Nice revision mindset. Send your updated notes.");
       return;
     }
 
@@ -273,7 +257,7 @@
       return;
     }
 
-    await sendAiMessage("Use ‘Try again’ to revise your notes, or ‘Restart lesson’ to begin from the top.");
+    await sendAiMessage("Choose Try again or Restart lesson.");
     setQuickReplies(["Try again", "Restart lesson"]);
   }
 
@@ -285,29 +269,12 @@
 
     addMessage(text, "user");
 
-    if (conversationState === State.GREETING || conversationState === State.TEACHING_CONFIRM) {
-      await handleReadinessInput(text);
+    if (conversationState === State.GREETING) {
+      await handleGreetingInput(text);
       return;
     }
 
-    if (conversationState === State.NOTES_INSTRUCTIONS) {
-      if (text.toLowerCase() === "yes") {
-        conversationState = State.NOTES_MODE;
-        setQuickReplies([]);
-        await sendAiMessage(data.notesInstructions);
-      } else {
-        await sendAiMessage(data.readyReminder);
-        setQuickReplies(["Yes"]);
-      }
-      return;
-    }
-
-    if (conversationState === State.UNDERSTANDING_CHECK) {
-      await handleUnderstandingInput(text);
-      return;
-    }
-
-    if (conversationState === State.NOTES_MODE) {
+    if (conversationState === State.WAITING_FOR_NOTES) {
       await handleNotesSubmission(text);
       return;
     }
@@ -343,14 +310,16 @@
   }
 
   function wireGoogleFormValues() {
-    if (data.googleForm) {
-      if (feedbackIframeEl) {
-        feedbackIframeEl.src = data.googleForm.iframeSrc;
-      }
+    if (!data.googleForm) {
+      return;
+    }
 
-      if (feedbackOpenLinkEl) {
-        feedbackOpenLinkEl.href = data.googleForm.openUrl;
-      }
+    if (feedbackIframeEl) {
+      feedbackIframeEl.src = data.googleForm.iframeSrc;
+    }
+
+    if (feedbackOpenLinkEl) {
+      feedbackOpenLinkEl.href = data.googleForm.openUrl;
     }
   }
 
