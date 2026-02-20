@@ -10,44 +10,29 @@
   <main class="page">
     <header class="page-header">
       <h1>AI Tutor: Feedback on Student Notes</h1>
-      <p class="subtitle">Write your own notes, then get supportive feedback in a phone-style chat.</p>
+      <p class="subtitle">Practice writing notes by texting an AI tutor.</p>
     </header>
 
-    <section class="layout-grid" aria-label="Lesson, notes, and AI chat layout">
-      <div class="left-column">
-        <article class="lesson-card" aria-labelledby="lessonTitle">
-          <h2 id="lessonTitle"></h2>
-          <p id="lessonParagraph"></p>
-        </article>
+    <section class="chat-shell" aria-label="AI tutor chat demo">
+      <section class="phone" aria-label="Phone style AI tutor interface">
+        <div class="phone-header">AI Tutor</div>
 
-        <section class="notes-card" aria-label="Student notes and explanation">
-          <h2>Student Notes</h2>
-          <label for="notesText" class="notes-label">Student Notes</label>
-          <textarea
-            id="notesText"
-            aria-label="Student notes"
-            placeholder="Write about the scientific method."
-          ></textarea>
+        <div id="chatArea" class="chat-area" aria-live="polite" aria-label="Chat messages"></div>
 
-          <div class="action-buttons">
-            <button id="feedbackBtn" type="button">Get AI feedback</button>
-            <button id="resetBtn" type="button" class="secondary">Reset</button>
-          </div>
+        <div id="quickReplies" class="quick-replies" aria-label="Quick reply options"></div>
 
-          <section class="explanation" aria-live="polite" aria-labelledby="explanationHeading">
-            <h3 id="explanationHeading">What the AI looked for (and why)</h3>
-            <ul id="explanationList" class="explanation-list"></ul>
-            <p id="bonusSignal" class="bonus-signal"></p>
-          </section>
-        </section>
-      </div>
+        <form id="composerForm" class="composer" aria-label="Message composer">
+          <label for="messageInput" class="sr-only">Type your message</label>
+          <input id="messageInput" type="text" autocomplete="off" placeholder="Type a message..." />
+          <button id="sendBtn" type="submit">Send</button>
+        </form>
+      </section>
 
-      <div class="right-column">
-        <section class="phone" aria-label="AI tutor messages">
-          <div class="phone-header">AI Tutor</div>
-          <div id="chatArea" class="chat-area" aria-live="polite"></div>
-        </section>
-      </div>
+      <aside class="rubric-panel" aria-live="polite" aria-labelledby="rubricHeading">
+        <h2 id="rubricHeading">What I’m looking for</h2>
+        <p id="rubricTopic" class="rubric-topic"></p>
+        <ul id="rubricList" class="rubric-list"></ul>
+      </aside>
     </section>
 
     <section id="feedback" class="feedback-section" aria-labelledby="feedbackHeading">

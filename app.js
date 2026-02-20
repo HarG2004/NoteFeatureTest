@@ -1,257 +1,367 @@
-(function () {
+(() => {
+  const data = window.DEMO_DATA;
 
-  const lessonTitleEl = document.getElementById("lessonTitle");
-  const lessonParagraphEl = document.getElementById("lessonParagraph");
-  const notesTextEl = document.getElementById("notesText");
+  const State = {
+    GREETING: 0,
+    TEACHING_CONFIRM: 1,
+    UNDERSTANDING_CHECK: 2,
+    NOTES_INSTRUCTIONS: 3,
+    NOTES_MODE: 4,
+    CONTINUE: 5
+  };
+
   const chatAreaEl = document.getElementById("chatArea");
-  const feedbackBtn = document.getElementById("feedbackBtn");
-  const resetBtn = document.getElementById("resetBtn");
-  const explanationListEl = document.getElementById("explanationList");
-  const bonusSignalEl = document.getElementById("bonusSignal");
+  const quickRepliesEl = document.getElementById("quickReplies");
+  const composerFormEl = document.getElementById("composerForm");
+  const messageInputEl = document.getElementById("messageInput");
+  const rubricTopicEl = document.getElementById("rubricTopic");
+  const rubricListEl = document.getElementById("rubricList");
   const feedbackIframeEl = document.getElementById("feedbackIframe");
   const feedbackOpenLinkEl = document.getElementById("feedbackOpenLink");
 
-  function normalizeText(text) {
-    return text
+  let conversationState = State.GREETING;
+  let rubricStatus = buildNeutralRubricStatus();
+
+  function randomDelay() {
+    return 800 + Math.floor(Math.random() * 401);
+  }
+
+  function normalizeText(value) {
+    return value
       .toLowerCase()
       .replace(/[^a-z0-9\s]/g, " ")
       .replace(/\s+/g, " ")
       .trim();
   }
 
-  function stemToken(token) {
-    if (token.endsWith("ations")) return token.slice(0, -5) + "e";
-    if (token.endsWith("ation")) return token.slice(0, -5) + "e";
-    if (token.endsWith("ing") && token.length > 5) return token.slice(0, -3);
-    if (token.endsWith("ed") && token.length > 4) return token.slice(0, -2);
-    if (token.endsWith("es") && token.length > 4) return token.slice(0, -2);
-    if (token.endsWith("s") && token.length > 3) return token.slice(0, -1);
-    return token;
+  function tokenize(value) {
+    const normalized = normalizeText(value);
+    return normalized ? normalized.split(" ") : [];
   }
 
-  function tokenize(text) {
-    const normalized = normalizeText(text);
-    const rawTokens = normalized ? normalized.split(" ") : [];
-    const stopwords = new Set(DEMO.stopwords);
+  function containsSynonym(tokensSet, normalizedText, synonym) {
+    const normalizedSynonym = normalizeText(synonym);
 
-    return rawTokens
-      .map((token) => stemToken(token))
-      .filter((token) => token && !stopwords.has(token));
-  }
-
-  function phraseInText(normalizedText, keyword) {
-    const normalizedKeyword = normalizeText(keyword);
-    if (!normalizedKeyword) return false;
-
-    if (normalizedKeyword.includes(" ")) {
-      return normalizedText.includes(normalizedKeyword);
+    if (!normalizedSynonym) {
+      return false;
     }
 
-    const singleKeywordStem = stemToken(normalizedKeyword);
-    const textTokens = tokenize(normalizedText);
-    return textTokens.includes(singleKeywordStem);
+    if (normalizedSynonym.includes(" ")) {
+      return normalizedText.includes(normalizedSynonym);
+    }
+
+    return tokensSet.has(normalizedSynonym);
   }
 
-  function detectConcepts(inputText) {
-    const normalizedText = normalizeText(inputText);
-
-    return DEMO.rubric.map((group) => {
-      const detected = group.keywords.some((keyword) => phraseInText(normalizedText, keyword));
-      return { ...group, detected };
-    });
+  function buildNeutralRubricStatus() {
+    return data.keyPoints.map((point) => ({
+      id: point.id,
+      label: point.label,
+      status: "neutral"
+    }));
   }
 
-  function renderExplanation(results, hasAnalyzed) {
-    explanationListEl.innerHTML = "";
+  function renderRubric() {
+    rubricTopicEl.textContent = `Topic: ${data.topic}`;
+    rubricListEl.innerHTML = "";
 
-    results.forEach((item) => {
+    rubricStatus.forEach((item) => {
       const li = document.createElement("li");
-      li.className = "explanation-item";
+      li.className = "rubric-item";
 
-      const heading = document.createElement("strong");
-      heading.textContent = item.label;
+      const label = document.createElement("span");
+      label.textContent = item.label;
 
       const status = document.createElement("span");
-      status.className = "status";
+      status.className = `rubric-status ${item.status}`;
 
-      if (!hasAnalyzed) {
-        status.classList.add("neutral");
-        status.textContent = "(Not checked yet)";
-      } else if (item.detected) {
-        status.classList.add("detected");
-        status.textContent = "Detected ✅";
+      if (item.status === "detected") {
+        status.textContent = "✅ Detected";
+      } else if (item.status === "missing") {
+        status.textContent = "➕ Missing";
       } else {
-        status.classList.add("missing");
-        status.textContent = "Missing ➕";
+        status.textContent = "• Not checked";
       }
 
-      heading.appendChild(status);
-
-      const why = document.createElement("p");
-      why.textContent = item.whyItMatters;
-
-      li.appendChild(heading);
-      li.appendChild(why);
-      explanationListEl.appendChild(li);
+      li.append(label, status);
+      rubricListEl.appendChild(li);
     });
-
-    bonusSignalEl.textContent = "AI check scope: only these two note targets are scored (hypothesis/prediction and experiment + evidence).";
   }
 
-  function addBubble(text, variant) {
-    const bubble = document.createElement("div");
-    bubble.className = variant ? `bubble ${variant}` : "bubble";
-    bubble.textContent = text;
-    chatAreaEl.appendChild(bubble);
+  function scrollChatToBottom() {
     chatAreaEl.scrollTop = chatAreaEl.scrollHeight;
   }
 
-  function renderGreeting() {
-    chatAreaEl.innerHTML = "";
-    addBubble(DEMO.greeting, "neutral");
+  function addMessage(text, sender) {
+    const bubble = document.createElement("div");
+    bubble.className = `bubble ${sender}`;
+    bubble.textContent = text;
+    chatAreaEl.appendChild(bubble);
+    scrollChatToBottom();
   }
 
-  function showTyping() {
-    chatAreaEl.innerHTML = "";
-    const typingBubble = document.createElement("div");
-    typingBubble.className = "bubble";
+  function addTypingBubble() {
+    const bubble = document.createElement("div");
+    bubble.className = "bubble ai typing-bubble";
     const dots = document.createElement("span");
-    dots.className = "typing";
+    dots.className = "typing-dots";
     dots.textContent = "...";
-    typingBubble.appendChild(dots);
-    chatAreaEl.appendChild(typingBubble);
+    bubble.appendChild(dots);
+    chatAreaEl.appendChild(bubble);
+    scrollChatToBottom();
+    return bubble;
   }
 
-  function buildSuggestions(missingGroups) {
-    const priorityFirst = [
-      ...DEMO.prioritySuggestionIds
-        .map((id) => missingGroups.find((group) => group.id === id))
-        .filter(Boolean),
-      ...missingGroups.filter((group) => !DEMO.prioritySuggestionIds.includes(group.id))
-    ];
+  async function sendAiMessage(text) {
+    const typingBubble = addTypingBubble();
+    await new Promise((resolve) => window.setTimeout(resolve, randomDelay()));
+    typingBubble.remove();
+    addMessage(text, "ai");
+  }
 
-    return priorityFirst.map((group) => {
-      switch (group.id) {
-        case "hypothesis":
-          return "You might add a clear hypothesis or prediction (for example, 'If..., then...').";
-        case "evidence":
-          return "One helpful detail is how you tested the idea and what evidence/data you recorded.";
-        default:
-          return `You might add a note about ${group.label.toLowerCase()}.`;
-      }
+  async function sendAiMessages(messages) {
+    for (const message of messages) {
+      await sendAiMessage(message);
+    }
+  }
+
+  function setQuickReplies(labels) {
+    quickRepliesEl.innerHTML = "";
+
+    labels.forEach((label) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.textContent = label;
+      button.dataset.value = label;
+      quickRepliesEl.appendChild(button);
     });
   }
 
-  function buildTemplateMessage(missingGroups) {
-    if (!missingGroups.length) {
-      return null;
-    }
+  function analyzeNotes(text) {
+    const normalizedText = normalizeText(text);
+    const tokensSet = new Set(tokenize(text));
 
-    const lines = ["Suggested rewrite template:"];
-    const map = {
-      hypothesis: "- Hypothesis/prediction: ...",
-      evidence: "- How you tested it + what evidence/data you collected: ..."
-    };
-
-    missingGroups.forEach((group) => lines.push(map[group.id]));
-    return lines.join("\n");
-  }
-
-  function buildFeedbackMessages(inputText, results) {
-    const trimmed = inputText.trim();
-    const detectedGroups = results.filter((group) => group.detected);
-    const missingGroups = results.filter((group) => !group.detected);
-
-    if (!trimmed) {
-      return [
-        "Great job starting this activity. When you're ready, write a few bullets about the scientific method and I’ll give gentle feedback.",
-        "A helpful start is: (1) your hypothesis/prediction and (2) how you tested it with evidence."
-      ];
-    }
-
-    const veryShort = tokenize(trimmed).length < 12;
-    const coverage = Math.round((detectedGroups.length / results.length) * 100);
-
-    const firstMessageBase =
-      coverage === 100
-        ? "Great job writing notes."
-        : "Great job writing notes—here are a few suggestions to make them even stronger.";
-    let strengthPart = "";
-
-    if (detectedGroups.length > 0) {
-      const strengthLabels = detectedGroups.slice(0, 2).map((group) => group.label.toLowerCase());
-      strengthPart = ` I can already see ${strengthLabels.join(" and ")} in your notes.`;
-    } else {
-      strengthPart = " You’ve made a useful start, and adding a few core parts will make the meaning clearer.";
-    }
-
-    const messages = [`${firstMessageBase}${strengthPart}`];
-
-    if (veryShort) {
-      messages.push(
-        "Your notes are a bit brief right now. Try adding both main points: your hypothesis and your evidence from testing."
+    return data.keyPoints.map((point) => {
+      const detected = point.synonyms.some((synonym) =>
+        containsSynonym(tokensSet, normalizedText, synonym)
       );
-    } else {
-      const suggestions = buildSuggestions(missingGroups);
-      if (suggestions.length) {
-        messages.push(suggestions.join(" "));
+
+      return {
+        id: point.id,
+        label: point.label,
+        status: detected ? "detected" : "missing"
+      };
+    });
+  }
+
+  function buildNotesFeedback(results) {
+    const missing = results.filter((item) => item.status === "missing");
+    const detected = results.filter((item) => item.status === "detected");
+
+    const messages = [
+      "Great job writing notes—here are a couple suggestions to make them even stronger."
+    ];
+
+    if (detected.length > 0) {
+      const strengths = detected.map((item) => item.label.toLowerCase()).join(" and ");
+      messages.push(`Nice work including ${strengths}.`);
+    }
+
+    if (missing.length === 0) {
+      messages.push("You captured both key ideas I was looking for. ✅");
+      return messages;
+    }
+
+    const advice = missing
+      .map((item) => {
+        if (item.id === "hypothesis") {
+          return "add a clear hypothesis or prediction";
+        }
+
+        return "mention how the experiment was run and what data/observations were recorded";
+      })
+      .join(" and ");
+
+    messages.push(`To strengthen your notes, ${advice}.`);
+
+    const rewritePieces = [];
+    if (missing.some((item) => item.id === "hypothesis")) {
+      rewritePieces.push("Hypothesis: If ___, then ___");
+    }
+
+    if (missing.some((item) => item.id === "experiment-data")) {
+      rewritePieces.push("Experiment/data: We tested by ___ and observed ___");
+    }
+
+    if (rewritePieces.length) {
+      messages.push(`Suggested rewrite: ${rewritePieces.join("; ")}.`);
+    }
+
+    return messages.slice(0, 4);
+  }
+
+  async function handleReadinessInput(rawInput) {
+    const input = rawInput.trim().toLowerCase();
+
+    if (input === "not now") {
+      await sendAiMessage(data.notReadyReply);
+      setQuickReplies(["Yes", "Not now"]);
+      return;
+    }
+
+    if (input === "yes") {
+      conversationState = State.TEACHING_CONFIRM;
+      setQuickReplies([]);
+      await sendAiMessages([
+        data.teachingLead,
+        ...data.teachingMessages
+      ]);
+      await sendAiMessage(data.understandingQuestion);
+      conversationState = State.UNDERSTANDING_CHECK;
+      setQuickReplies(["I got it", "Repeat it"]);
+      return;
+    }
+
+    await sendAiMessage(data.readyReminder);
+    setQuickReplies(conversationState === State.GREETING ? ["Yes", "Not now"] : ["Yes"]);
+  }
+
+  async function handleUnderstandingInput(rawInput) {
+    const input = rawInput.trim().toLowerCase();
+
+    if (input === "i got it") {
+      await sendAiMessage(data.understandingConfirm);
+      await sendAiMessage(data.notesPrompt);
+      conversationState = State.NOTES_INSTRUCTIONS;
+      setQuickReplies(["Yes"]);
+      return;
+    }
+
+    if (input === "repeat it") {
+      await sendAiMessages([data.understandingRepeat, data.understandingQuestion]);
+      setQuickReplies(["I got it", "Repeat it"]);
+      return;
+    }
+
+    await sendAiMessage(data.understandingReminder);
+    setQuickReplies(["I got it", "Repeat it"]);
+  }
+
+  async function handleNotesSubmission(text) {
+    rubricStatus = analyzeNotes(text);
+    renderRubric();
+
+    const feedbackMessages = buildNotesFeedback(rubricStatus);
+    await sendAiMessages(feedbackMessages);
+
+    conversationState = State.CONTINUE;
+    setQuickReplies(["Try again", "Restart lesson"]);
+  }
+
+  async function handleContinueInput(rawInput) {
+    const input = rawInput.trim().toLowerCase();
+
+    if (input === "try again") {
+      conversationState = State.NOTES_MODE;
+      setQuickReplies(["Try again", "Restart lesson"]);
+      await sendAiMessage("Awesome effort. Send your revised notes and I’ll check them again.");
+      return;
+    }
+
+    if (input === "restart lesson") {
+      await restartLesson();
+      return;
+    }
+
+    await sendAiMessage("Use ‘Try again’ to revise your notes, or ‘Restart lesson’ to begin from the top.");
+    setQuickReplies(["Try again", "Restart lesson"]);
+  }
+
+  async function handleUserInput(rawInput) {
+    const text = rawInput.trim();
+    if (!text) {
+      return;
+    }
+
+    addMessage(text, "user");
+
+    if (conversationState === State.GREETING || conversationState === State.TEACHING_CONFIRM) {
+      await handleReadinessInput(text);
+      return;
+    }
+
+    if (conversationState === State.NOTES_INSTRUCTIONS) {
+      if (text.toLowerCase() === "yes") {
+        conversationState = State.NOTES_MODE;
+        setQuickReplies([]);
+        await sendAiMessage(data.notesInstructions);
       } else {
-        messages.push(`Nice coverage: you included all major parts of the method (${coverage}%).`);
+        await sendAiMessage(data.readyReminder);
+        setQuickReplies(["Yes"]);
       }
+      return;
     }
 
-    const templateMessage = buildTemplateMessage(missingGroups);
-    if (templateMessage && missingGroups.length >= 2) {
-      messages.push(templateMessage);
+    if (conversationState === State.UNDERSTANDING_CHECK) {
+      await handleUnderstandingInput(text);
+      return;
     }
 
-    return messages.slice(0, 3);
+    if (conversationState === State.NOTES_MODE) {
+      await handleNotesSubmission(text);
+      return;
+    }
+
+    await handleContinueInput(text);
   }
 
-  function analyzeAndRespond() {
-    const inputText = notesTextEl.value;
-    const results = detectConcepts(inputText);
-    const messages = buildFeedbackMessages(inputText, results);
+  async function restartLesson() {
+    conversationState = State.GREETING;
+    rubricStatus = buildNeutralRubricStatus();
+    renderRubric();
 
-    feedbackBtn.disabled = true;
-    showTyping();
-
-    const waitMs = Math.floor(Math.random() * 401) + 800;
-    window.setTimeout(() => {
-      chatAreaEl.innerHTML = "";
-      messages.forEach((message) => addBubble(message));
-      renderExplanation(results, true);
-      feedbackBtn.disabled = false;
-    }, waitMs);
+    chatAreaEl.innerHTML = "";
+    setQuickReplies(["Yes", "Not now"]);
+    await sendAiMessage(data.greeting);
   }
 
-  function resetDemo() {
-    notesTextEl.value = "";
-    feedbackBtn.disabled = false;
-    renderGreeting();
+  async function onQuickReplyClick(event) {
+    const btn = event.target.closest("button[data-value]");
+    if (!btn) {
+      return;
+    }
 
-    const neutralResults = DEMO.rubric.map((group) => ({ ...group, detected: false }));
-    renderExplanation(neutralResults, false);
+    await handleUserInput(btn.dataset.value);
   }
 
-  function init() {
-    lessonTitleEl.textContent = DEMO.lessonTitle;
-    lessonParagraphEl.textContent = DEMO.lessonParagraph;
+  async function onComposerSubmit(event) {
+    event.preventDefault();
+    const text = messageInputEl.value;
+    messageInputEl.value = "";
+    await handleUserInput(text);
+    messageInputEl.focus();
+  }
 
-    if (DEMO.googleForm) {
+  function wireGoogleFormValues() {
+    if (data.googleForm) {
       if (feedbackIframeEl) {
-        feedbackIframeEl.src = DEMO.googleForm.iframeSrc;
+        feedbackIframeEl.src = data.googleForm.iframeSrc;
       }
 
       if (feedbackOpenLinkEl) {
-        feedbackOpenLinkEl.href = DEMO.googleForm.openUrl;
+        feedbackOpenLinkEl.href = data.googleForm.openUrl;
       }
     }
+  }
 
-    feedbackBtn.addEventListener("click", analyzeAndRespond);
-    resetBtn.addEventListener("click", resetDemo);
+  async function init() {
+    wireGoogleFormValues();
+    renderRubric();
 
-    resetDemo();
+    quickRepliesEl.addEventListener("click", onQuickReplyClick);
+    composerFormEl.addEventListener("submit", onComposerSubmit);
+
+    await restartLesson();
   }
 
   init();
