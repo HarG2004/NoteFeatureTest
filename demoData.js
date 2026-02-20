@@ -1,53 +1,41 @@
 window.DEMO_DATA = {
-  topic: "The Scientific Method",
-  greeting: "Hi! Are you ready to learn about The Scientific Method?",
-  teachingLead: "Awesome. Here’s the key idea:",
-  teachingMessages: [
-    "The scientific method is a repeatable way to answer a question with evidence instead of guessing.",
-    [
-      "1) Ask a testable question: something specific you can measure.",
-      "2) Make a hypothesis: your best prediction before testing.",
-      "3) Run a fair experiment: keep conditions consistent and change one variable.",
-      "4) Collect observations/data: measurements, counts, or notes about what happened.",
-      "5) Analyze results: compare data to your prediction and decide whether the hypothesis was supported.",
-      "6) Revise and retest: strong scientists improve ideas and run another trial if needed."
-    ].join("\n"),
-    "Example: If plants get more sunlight, they should grow taller. You would test plant groups with different light amounts, measure their heights, and compare the results."
+  topicName: "The Scientific Method",
+  topicParagraph:
+    "The scientific method is a step-by-step way to answer questions using evidence. You start by asking a clear question and making a hypothesis, which is a testable prediction about what you think will happen. Then you run an experiment, keeping it fair so your test is reliable. During the experiment, you collect observations and data, such as measurements, counts, or notes. After that, you look at the results to see if your hypothesis was supported, and you can revise your idea and test again.",
+  greeting: "Ready to learn about the Scientific Method?",
+  notReadyReply: "No worries. Tap Yes when you want to start.",
+  readyReminder: "Please choose Yes or Not now.",
+  teachingIntro: "Great! Here is the Scientific Method in simple steps.",
+  teachingBullets: [
+    "Ask a clear question you can test.",
+    "Make a hypothesis, or a testable prediction.",
+    "Run a fair experiment to test your idea.",
+    "Record observations and data during the test.",
+    "Check results, then revise and test again if needed."
   ],
-  understandingQuestion:
-    "Quick check: does this flow make sense so far?",
-  understandingConfirm: "Nice! You’re ready for notes.",
-  understandingRepeat:
-    "No worries. Short recap: make a prediction, test it fairly, then use observations/data to judge your prediction.",
-  understandingReminder:
-    "Use one of the quick replies so I know whether to continue or recap.",
-  notesPrompt: "Want to take a few notes? Reply ‘Yes’ when you’re ready.",
-  notesInstructions: "Great—send me your notes as a message. A few bullets is perfect.",
-  notReadyReply: "No problem at all. I’ll be here—tap ‘Yes’ anytime you want to start.",
-  readyReminder: "Reply ‘Yes’ when you’re ready, and we’ll continue.",
+  notesPrompt: "Send me your notes. A few bullets is fine.",
   keyPoints: [
     {
-      id: "hypothesis",
-      label: "Hypothesis / prediction",
+      id: "hypothesis-testable",
+      label: "Hypothesis / testable idea",
       synonyms: [
         "hypothesis",
         "predict",
         "prediction",
         "guess",
-        "expected result"
+        "testable"
       ]
     },
     {
       id: "experiment-data",
-      label: "Experiment + observations/data",
+      label: "Experiment + data/observations",
       synonyms: [
         "experiment",
         "test",
         "trial",
-        "procedure",
         "measure",
         "observe",
-        "observations",
+        "observation",
         "data",
         "results"
       ]
