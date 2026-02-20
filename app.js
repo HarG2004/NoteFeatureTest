@@ -217,12 +217,12 @@
         "If you want to make them even stronger, you could add a little more detail."
       ];
 
-      if (couldAdd.some((item) => item.id === "hypothesis-testable")) {
-        messages.push("Suggestion: add a short hypothesis or testable prediction.");
+      if (couldAdd.some((item) => item.id === "clear-thinking-evidence")) {
+        messages.push("Suggestion: explain how your idea uses clear thinking and evidence.");
       }
 
-      if (couldAdd.some((item) => item.id === "evidence-testing")) {
-        messages.push("Suggestion: include how testing gave observations, data, or results.");
+      if (couldAdd.some((item) => item.id === "test-observations-data")) {
+        messages.push("Suggestion: include how testing produced observations, data, or results.");
       }
 
       messages.push(`Optional boost: ${data.bonusSuggestion}`);
