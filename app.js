@@ -45,7 +45,38 @@
       return normalizedText.includes(normalizedSynonym);
     }
 
-    return tokensSet.has(normalizedSynonym);
+    if (tokensSet.has(normalizedSynonym)) {
+      return true;
+    }
+
+    for (const token of tokensSet) {
+      if (
+        (token.length >= 4 && normalizedSynonym.startsWith(token)) ||
+        (normalizedSynonym.length >= 4 && token.startsWith(normalizedSynonym))
+      ) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  function getTopicTokenSet() {
+    const topicText = [
+      data.topicName,
+      data.topicParagraph,
+      ...(data.teachingBullets || [])
+    ].join(" ");
+
+    return new Set(tokenize(topicText));
+  }
+
+  function isSomewhatRelatedToTopic(text) {
+    const noteTokens = tokenize(text);
+    const topicTokens = getTopicTokenSet();
+
+    const relatedTokenCount = noteTokens.filter((token) => topicTokens.has(token)).length;
+    return relatedTokenCount >= 2;
   }
 
   function buildNeutralRubricStatus() {
@@ -175,34 +206,34 @@
     }));
   }
 
-  function buildNotesFeedback(results) {
+  function buildNotesFeedback(results, noteText) {
     const detected = results.filter((item) => item.status === "detected");
     const couldAdd = results.filter((item) => item.status === "could-add");
+    const somewhatRelated = detected.length > 0 || isSomewhatRelatedToTopic(noteText);
 
-    if (couldAdd.length === 0) {
-      return [
-        "Great work—your notes include both key ideas.",
-        `To strengthen your notes even more, consider adding this optional detail: ${data.bonusSuggestion}`
+    if (somewhatRelated) {
+      const messages = [
+        "Nice work—your notes connect to the topic and are on the right track.",
+        "If you want to make them even stronger, you could add a little more detail."
       ];
+
+      if (couldAdd.some((item) => item.id === "hypothesis-testable")) {
+        messages.push("Suggestion: add a short hypothesis or testable prediction.");
+      }
+
+      if (couldAdd.some((item) => item.id === "evidence-testing")) {
+        messages.push("Suggestion: include how testing gave observations, data, or results.");
+      }
+
+      messages.push(`Optional boost: ${data.bonusSuggestion}`);
+      return messages;
     }
 
-    const messages = ["Nice start—one thing you might add is a little more detail."];
-
-    if (detected.length > 0) {
-      messages.push("You already have a solid foundation in your notes.");
-    }
-
-    if (couldAdd.some((item) => item.id === "hypothesis-testable")) {
-      messages.push("To strengthen your notes, consider adding a hypothesis or testable prediction.");
-    }
-
-    if (couldAdd.some((item) => item.id === "evidence-testing")) {
-      messages.push("A helpful detail to include is how testing produced observations, data, or results.");
-    }
-
-    messages.push(`Optional boost: ${data.bonusSuggestion}`);
-
-    return messages;
+    return [
+      "Thanks for sharing your notes.",
+      `To help them match this topic even more, try adding one line about ${data.topicName} and how evidence or testing supports an idea.`,
+      "Tip: even a short note is enough as long as it connects to the lesson."
+    ];
   }
 
   function buildTeachingSequence() {
@@ -240,7 +271,7 @@
     rubricStatus = analyzeNotes(text);
     renderRubric();
 
-    const feedbackMessages = buildNotesFeedback(rubricStatus);
+    const feedbackMessages = buildNotesFeedback(rubricStatus, text);
     await sendAiMessages(feedbackMessages);
 
     conversationState = State.WAITING_FOR_NOTES;
