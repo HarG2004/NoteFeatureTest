@@ -17,20 +17,20 @@ window.DEMO_DATA = {
     "You can also add one short line about how evidence can strengthen a conclusion.",
   keyPoints: [
     {
-      id: "hypothesis-testable",
-      label: "Hypothesis / testable idea",
+      id: "clear-thinking-evidence",
+      label: "Clear thinking supported by evidence",
       synonyms: [
-        "hypothesis",
-        "predict",
-        "prediction",
-        "guess",
-        "testable",
-        "expectation"
+        "clear thinking",
+        "reasoning",
+        "logical",
+        "evidence",
+        "proof",
+        "support"
       ]
     },
     {
-      id: "evidence-testing",
-      label: "Evidence from testing + observations/data",
+      id: "test-observations-data",
+      label: "Testing ideas with observations or data",
       synonyms: [
         "test",
         "experiment",
@@ -41,7 +41,7 @@ window.DEMO_DATA = {
         "observations",
         "data",
         "results",
-        "evidence"
+        "measured"
       ]
     }
   ],
