@@ -1,0 +1,11 @@
+{
+  "name": "note-feature-test",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "vercel dev"
+  },
+  "dependencies": {
+    "openai": "^4.104.0"
+  }
+}
