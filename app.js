@@ -206,33 +206,31 @@
     }));
   }
 
-  function buildNotesFeedback(results, noteText) {
-    const detected = results.filter((item) => item.status === "detected");
-    const couldAdd = results.filter((item) => item.status === "could-add");
-    const somewhatRelated = detected.length > 0 || isSomewhatRelatedToTopic(noteText);
+  async function fetchFeedbackFromApi(noteText) {
+    const payload = {
+      topic: data.topicName,
+      lessonBullets: data.teachingBullets || [],
+      notes: noteText
+    };
 
-    if (somewhatRelated) {
-      const messages = [
-        "Nice work—your notes connect to the topic and are on the right track.",
-        "If you want to make them even stronger, you could add a little more detail."
-      ];
+    const response = await fetch("/api/feedback", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(payload)
+    });
 
-      if (couldAdd.some((item) => item.id === "clear-thinking-evidence")) {
-        messages.push("Suggestion: explain how your idea uses clear thinking and evidence.");
-      }
-
-      if (couldAdd.some((item) => item.id === "test-observations-data")) {
-        messages.push("Suggestion: include how testing produced observations, data, or results.");
-      }
-
-      return messages;
+    if (!response.ok) {
+      throw new Error("Feedback request failed");
     }
 
-    return [
-      "Thanks for sharing your notes.",
-      `To help them match this topic even more, try adding one line about ${data.topicName} and how evidence or testing supports an idea.`,
-      "Tip: even a short note is enough as long as it connects to the lesson."
-    ];
+    const body = await response.json();
+    if (!body || typeof body.reply !== "string" || !body.reply.trim()) {
+      throw new Error("Invalid feedback response");
+    }
+
+    return body.reply.trim();
   }
 
   function buildTeachingSequence() {
@@ -270,8 +268,14 @@
     rubricStatus = analyzeNotes(text);
     renderRubric();
 
-    const feedbackMessages = buildNotesFeedback(rubricStatus, text);
-    await sendAiMessages(feedbackMessages);
+    try {
+      const feedback = await fetchFeedbackFromApi(text);
+      await sendAiMessage(feedback);
+    } catch (error) {
+      await sendAiMessage(
+        "I couldn’t generate feedback right now. Please try again in a moment."
+      );
+    }
 
     conversationState = State.WAITING_FOR_NOTES;
     setQuickReplies(["Send revised notes", "Restart"]);
