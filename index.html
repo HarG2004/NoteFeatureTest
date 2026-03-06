@@ -16,22 +16,17 @@
     <section class="chat-shell" aria-label="AI tutor chat demo">
       <section class="phone" aria-label="Phone style AI tutor interface">
         <div class="phone-header">AI Tutor</div>
-
         <div id="chatArea" class="chat-area" aria-live="polite" aria-label="Chat messages"></div>
-
-        <div id="quickReplies" class="quick-replies" aria-label="Quick reply options"></div>
-
-        <form id="composerForm" class="composer" aria-label="Message composer">
-          <label for="messageInput" class="sr-only">Type your message</label>
-          <input id="messageInput" type="text" autocomplete="off" placeholder="Type a message..." />
-          <button id="sendBtn" type="submit">Send</button>
-        </form>
       </section>
 
-      <aside class="rubric-panel" aria-live="polite" aria-labelledby="rubricHeading">
-        <h2 id="rubricHeading">What I’m looking for in your notes</h2>
-        <p id="rubricTopic" class="rubric-topic"></p>
-        <ul id="rubricList" class="rubric-list"></ul>
+      <aside class="notes-panel" aria-labelledby="notesHeading">
+        <h2 id="notesHeading">Your Notes</h2>
+        <p>Write notes about the lesson, then ask for AI feedback.</p>
+        <form id="notesForm" class="notes-form">
+          <label for="notesInput" class="sr-only">Write your notes</label>
+          <textarea id="notesInput" placeholder="Type your notes for this topic..."></textarea>
+          <button id="getFeedbackBtn" type="submit">Get AI feedback</button>
+        </form>
       </aside>
     </section>
 
