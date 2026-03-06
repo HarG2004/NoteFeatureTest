@@ -15,7 +15,7 @@ Electric charge is the fundamental property of matter that causes it to experien
 Section:
 The Basics
 
-Lines (keep labels):
+Lines:
 Charge symbol: Q or q
 Unit: Coulomb (C) — named after physicist Charles-Augustin de Coulomb
 Key insight: All matter is made of atoms with electrons (negative charge) and protons (positive charge). When these move or separate, we get electrical effects.
@@ -25,7 +25,6 @@ The Electron Charge
 
 Line:
 One electron carries a tiny amount of charge: e = 1.602 × 10^−19 C
-(Implement the exponent nicely using HTML, e.g. 10<sup>−19</sup>)
 
 Line:
 This is the elementary charge—the smallest unit of charge that exists naturally.
@@ -36,8 +35,9 @@ SI Prefixes (Making Big Numbers Manageable)
 Text:
 When dealing with electricity, charges can be huge or tiny. We use prefixes to make them easier to write:
 
-TABLE:
-PREFIX | SYMBOL | MULTIPLIER | EXAMPLE
+TABLE
+Columns: PREFIX | SYMBOL | MULTIPLIER | EXAMPLE
+Rows:
 Pico | p | 10^−12 | pC (picocoulomb)
 Nano | n | 10^−9 | nC (nanocoulomb)
 Micro | μ | 10^−6 | μC (microcoulomb)
@@ -55,12 +55,168 @@ Here's a golden rule: Charge is never created or destroyed—only moved around. 
 Section:
 Conductors vs Insulators
 
-Bullets (keep arrows):
+Bullets:
 • Conductors (copper, aluminum, silver): Electrons move freely → charge flows easily
 • Insulators (rubber, plastic, glass): Electrons are locked in place → charge doesn't flow
 
 Text:
 In your gaming console, the copper wiring is a conductor—it lets charge flow to power your game. The plastic casing is an insulator—it keeps the charge where it belongs!`
+  },
+  "voltage-current": {
+    title: "Voltage & Current",
+    lesson: `Title:
+Voltage & Current
+
+Section:
+What Are Voltage and Current?
+
+Text:
+Think of voltage and current as a team working together to power your gaming console:
+
+Bullets:
+• Current is the flow of charge (like water flowing through a pipe)
+• Voltage is the push that makes charge flow (like the pressure pushing the water)
+
+Section:
+Current: The Flow of Charge
+
+Lines:
+Current symbol: i or I
+Unit: Ampere (A) — one amp = one coulomb per second
+
+Equation:
+i = dq/dt
+
+Text:
+This means: current is how much charge moves past a point per unit time.
+
+Text:
+Key insight: If you have a wire carrying 1 A of current, that means 1 coulomb of charge flows through any cross-section of that wire every second.
+
+Section:
+Voltage: The Electric Potential Difference
+
+Lines:
+Voltage symbol: v or V
+Unit: Volt (V) — which equals joules per coulomb
+
+Equation:
+v = dw/dq
+
+Text:
+This means: voltage is the energy given to (or taken from) each coulomb of charge.
+
+Text:
+Real example: A battery labeled "12V" means it gives 12 joules of energy to every coulomb of charge that flows through it.
+
+Section:
+Conventional Current Direction
+
+Text:
+Here's a quirk of history: we define current as flowing from positive to negative (even though electrons actually move the opposite way!). This is called conventional current direction, and it's what engineers use everywhere.
+
+Section:
+Passive Sign Convention
+
+Text:
+When measuring voltage and current in a circuit, we use a standard rule:
+
+Bullets:
+• Current enters the positive terminal of a component
+• Voltage is measured from negative to positive
+
+Text:
+This keeps our power calculations consistent: P = V × I (power absorbed by component)`
+  },
+  "power-energy": {
+    title: "Power & Energy",
+    lesson: `Title:
+Power & Energy
+
+Section:
+What Are Power and Energy?
+
+Text:
+Think of power and energy as two sides of the same coin:
+
+Bullets:
+• Energy is the total work done (like your total game score)
+• Power is how fast you're using that energy (like your damage-per-second or DPS)
+
+Section:
+Instantaneous Power: The Rate of Energy Transfer
+
+Lines:
+Power symbol: p or P
+Unit: Watt (W) — one watt = one joule per second
+
+Equation:
+p(t) = v(t) · i(t)
+
+Text:
+This is the fundamental relationship: power = voltage × current. At any moment in time, the power being delivered to (or absorbed by) a component is the product of its voltage and current.
+
+Text:
+Real example: A 12V battery delivering 2A of current is supplying 12 × 2 = 24 watts of power.
+
+Section:
+Energy: The Integral of Power Over Time
+
+Lines:
+Energy symbol: w or W
+Unit: Joule (J) — the total work done
+
+Equation:
+w = ∫ p dt
+
+Text:
+If power is constant: w = p × t
+
+Text:
+Example: A 24W device running for 1 hour (3600 seconds) uses 24 × 3600 = 86,400 joules of energy.
+
+Section:
+Power Absorbed vs Power Delivered
+
+Text:
+Here's where the passive sign convention matters:
+
+Bullets:
+• Positive power (p > 0): The component is absorbing energy (like a resistor heating up or a motor spinning)
+• Negative power (p < 0): The component is supplying energy (like a battery powering a circuit)
+
+Text:
+The sign tells you the direction of energy flow!
+
+Section:
+Energy Storage in Reactive Components
+
+Lines:
+Capacitor: w_C = 1/2 C v^2
+
+Text:
+A capacitor stores energy in its electric field. Higher voltage = more stored energy.
+
+Lines:
+Inductor: w_L = 1/2 L i^2
+
+Text:
+An inductor stores energy in its magnetic field. Higher current = more stored energy.
+
+Text:
+These are super important because they can release that energy back into the circuit later—like a battery that charges and discharges!
+
+Section:
+Quick Analogy (Gaming Style)
+
+Text:
+In a game:
+
+Bullets:
+• Energy = your total mana pool or health bar
+• Power = how fast you're regenerating mana or taking damage
+• Capacitor = a shield that stores energy and releases it when needed
+• Inductor = a momentum effect that resists sudden changes`
   }
 };
 
@@ -75,11 +231,11 @@ module.exports = async function handler(req, res) {
     return res.status(500).json({ error: "Server is missing OPENAI_API_KEY." });
   }
 
-  const { notes, topicId } = req.body || {};
+  const { topicId, notes } = req.body || {};
 
-  if (typeof notes !== "string" || !notes.trim() || typeof topicId !== "string") {
+  if (typeof topicId !== "string" || typeof notes !== "string" || !notes.trim()) {
     return res.status(400).json({
-      error: 'Invalid request body. Expected { "notes": string, "topicId": string }.'
+      error: 'Invalid request body. Expected { "topicId": string, "notes": string }.'
     });
   }
 
@@ -96,16 +252,13 @@ module.exports = async function handler(req, res) {
       input: [
         {
           role: "system",
-          content: `You are a friendly, encouraging tutor. Your job is to give brief, supportive feedback on a student's notes based only on the lesson content provided. Be kind and motivational.
+          content: `You are a friendly, encouraging tutor. Give brief, supportive feedback on a student’s notes based only on the lesson content provided.
 
 RULES:
-- Start by briefly saying what the student did well.
-- If the student covers most key points, give little or no corrective suggestions.
-- If the student covers most key points, keep suggestions minimal: 0-2 short bullet points only when helpful.
-- If the student misses several key points, provide exactly 4 short bullet suggestions.
+- Reply with 2–4 short bullet suggestions maximum.
 - Focus only on what the student could ADD to strengthen their notes.
 - Do not be negative or harsh.
-- Do not rewrite the student's notes or tell them exactly what to write.
+- Do not rewrite the student’s notes or tell them exactly what to write.
 - Keep it concise.`
         },
         {
@@ -117,19 +270,12 @@ STUDENT NOTES:
 ${notes.trim()}
 
 TASK:
-Give encouraging feedback in this format:
-1) One short sentence: "What you did well".
-2) "Suggestions" bullets based on coverage:
-   - If notes cover most key points: 0-2 bullets max.
-   - If notes are missing several key points: exactly 4 bullets.
-
-If the notes already include most key points, respond with praise and at most one minor suggestion (or none).`
+Give 2–4 short bullet suggestions for what they could add to make their notes stronger. Use phrasing like “You might add…” or “To strengthen your notes, consider…”.`
         }
       ]
     });
 
     const reply = (response.output_text || "").trim();
-
     if (!reply) {
       return res.status(502).json({ error: "Model returned an empty response." });
     }

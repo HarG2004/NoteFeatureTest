@@ -135,6 +135,11 @@ body {
   margin: 0 0 0.65rem;
 }
 
+.bubble.ai ul {
+  margin: 0 0 0.65rem;
+  padding-left: 1.15rem;
+}
+
 .bubble.user {
   background: var(--user-bubble);
   color: var(--user-ink);
@@ -157,6 +162,30 @@ body {
 
 .lesson-table th {
   background: #eff5ff;
+}
+
+
+.action-buttons {
+  display: flex;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+  padding: 0.75rem 0.9rem 0.9rem;
+  border-top: 1px solid var(--border);
+  background: #fff;
+}
+
+.pill-button {
+  border-radius: 999px;
+  border: 1px solid #bfd1fb;
+  background: #f1f6ff;
+  color: #1d4ed8;
+  padding: 0.45rem 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.pill-button:hover {
+  background: #e6efff;
 }
 
 .bubble.typing-bubble {
@@ -238,6 +267,11 @@ body {
   color: #fff;
   cursor: pointer;
   justify-self: start;
+}
+
+#getFeedbackBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 button:focus-visible,
