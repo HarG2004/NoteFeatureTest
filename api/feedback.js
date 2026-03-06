@@ -99,7 +99,10 @@ module.exports = async function handler(req, res) {
           content: `You are a friendly, encouraging tutor. Your job is to give brief, supportive feedback on a student's notes based only on the lesson content provided. Be kind and motivational.
 
 RULES:
-- Reply with 2–4 short bullet suggestions maximum.
+- Start by briefly saying what the student did well.
+- If the student covers most key points, give little or no corrective suggestions.
+- If the student covers most key points, keep suggestions minimal: 0-2 short bullet points only when helpful.
+- If the student misses several key points, provide exactly 4 short bullet suggestions.
 - Focus only on what the student could ADD to strengthen their notes.
 - Do not be negative or harsh.
 - Do not rewrite the student's notes or tell them exactly what to write.
@@ -114,7 +117,13 @@ STUDENT NOTES:
 ${notes.trim()}
 
 TASK:
-Give 2–4 short bullet suggestions for what they could add to make their notes stronger. Use phrasing like “You might add…” or “To strengthen your notes, consider…”.`
+Give encouraging feedback in this format:
+1) One short sentence: "What you did well".
+2) "Suggestions" bullets based on coverage:
+   - If notes cover most key points: 0-2 bullets max.
+   - If notes are missing several key points: exactly 4 bullets.
+
+If the notes already include most key points, respond with praise and at most one minor suggestion (or none).`
         }
       ]
     });
