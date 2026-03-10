@@ -13,7 +13,9 @@
     topicIndex: 0,
     sectionIndex: -1,
     hasCompletedTopicLesson: false,
-    hasRequestedFeedbackForTopic: false,
+    canMoveToNextTopic: false,
+    notesFlowState: "undecided",
+    hasSubmittedNotesForTopic: false,
     isSubmittingFeedback: false
   };
 
@@ -223,14 +225,41 @@
       return;
     }
 
-    if (conversationState.hasRequestedFeedbackForTopic && hasNextTopic()) {
+    if (conversationState.hasCompletedTopicLesson && conversationState.notesFlowState === "undecided") {
+      actionButtonsEl.append(
+        createActionButton("Yes, I want to take notes", async () => {
+          addMessage("Yes, I want to take notes", "user");
+          conversationState.notesFlowState = "taking";
+          renderActionButtons();
+          await sendAiMessage(
+            "Great—submit your notes whenever you're ready. You can send updated notes as many times as you'd like."
+          );
+        }),
+        createActionButton("No, skip notes", async () => {
+          addMessage("No, skip notes", "user");
+          conversationState.notesFlowState = "skipping";
+          conversationState.canMoveToNextTopic = true;
+          renderActionButtons();
+          await sendAiMessage(
+            hasNextTopic()
+              ? "No problem. Would you like to move on to the next topic?"
+              : "No problem. You've reached the final topic."
+          );
+        })
+      );
+      return;
+    }
+
+    if (conversationState.canMoveToNextTopic && hasNextTopic()) {
       actionButtonsEl.appendChild(
         createActionButton("Next subject", async () => {
           addMessage("Next subject", "user");
           conversationState.topicIndex += 1;
           conversationState.sectionIndex = -1;
           conversationState.hasCompletedTopicLesson = false;
-          conversationState.hasRequestedFeedbackForTopic = false;
+          conversationState.canMoveToNextTopic = false;
+          conversationState.notesFlowState = "undecided";
+          conversationState.hasSubmittedNotesForTopic = false;
           notesInputEl.value = "";
           setFeedbackButtonState();
           renderActionButtons();
@@ -295,8 +324,19 @@
 
     try {
       const feedback = await fetchFeedbackFromApi(notes, currentTopic().id);
-      conversationState.hasRequestedFeedbackForTopic = true;
+      conversationState.notesFlowState = "taking";
+      conversationState.hasSubmittedNotesForTopic = true;
+      conversationState.canMoveToNextTopic = true;
       await sendAiMessage(feedback);
+      if (hasNextTopic()) {
+        await sendAiMessage(
+          "Would you like to move on to the next topic? You can also resubmit notes if you want more feedback."
+        );
+      } else {
+        await sendAiMessage(
+          "Nice work finishing the last topic. You can still resubmit notes if you want more feedback."
+        );
+      }
       renderActionButtons();
     } catch (error) {
       await sendAiMessage(
