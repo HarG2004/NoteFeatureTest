@@ -187,6 +187,15 @@
     return button;
   }
 
+  async function sendTopicCompletionPromptIfNeeded() {
+    if (!hasMoreSectionsInTopic()) {
+      conversationState.hasCompletedTopicLesson = true;
+      await sendAiMessage(
+        "Would you like to submit your notes or move onto the next subject?"
+      );
+    }
+  }
+
   function renderActionButtons() {
     clearActionButtons();
 
@@ -218,6 +227,9 @@
           await sendAiMessage(getCurrentSections()[conversationState.sectionIndex].html, {
             isHtml: true
           });
+          await sendTopicCompletionPromptIfNeeded();
+          setFeedbackButtonState();
+          renderActionButtons();
         })
       );
       return;
@@ -229,20 +241,14 @@
           addMessage("Next section", "user");
           conversationState.sectionIndex += 1;
 
-          if (!hasMoreSectionsInTopic()) {
-            conversationState.hasCompletedTopicLesson = true;
-          }
-
           setFeedbackButtonState();
           renderActionButtons();
           await sendAiMessage(getCurrentSections()[conversationState.sectionIndex].html, {
             isHtml: true
           });
-          if (!hasMoreSectionsInTopic()) {
-            await sendAiMessage(
-              "Would you like to submit your notes? You can also move onto the next subject."
-            );
-          }
+          await sendTopicCompletionPromptIfNeeded();
+          setFeedbackButtonState();
+          renderActionButtons();
         })
       );
       return;
