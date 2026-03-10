@@ -190,6 +190,24 @@
   function renderActionButtons() {
     clearActionButtons();
 
+    const shouldShowNextSubjectButton =
+      conversationState.hasCompletedTopicLesson && hasNextTopic();
+
+    const createNextSubjectButton = () =>
+      createActionButton("Next subject", async () => {
+        addMessage("Next subject", "user");
+        conversationState.topicIndex += 1;
+        conversationState.sectionIndex = -1;
+        conversationState.hasCompletedTopicLesson = false;
+        conversationState.canMoveToNextTopic = false;
+        conversationState.notesFlowState = "undecided";
+        conversationState.hasSubmittedNotesForTopic = false;
+        notesInputEl.value = "";
+        setFeedbackButtonState();
+        renderActionButtons();
+        await sendAiMessage(`Are you ready to learn about ${currentTopic().title}?`);
+      });
+
     if (conversationState.sectionIndex < 0) {
       actionButtonsEl.appendChild(
         createActionButton("Yes", async () => {
@@ -220,6 +238,11 @@
           await sendAiMessage(getCurrentSections()[conversationState.sectionIndex].html, {
             isHtml: true
           });
+          if (!hasMoreSectionsInTopic()) {
+            await sendAiMessage(
+              "Would you like to submit your notes? You can also move onto the next subject."
+            );
+          }
         })
       );
       return;
@@ -227,47 +250,21 @@
 
     if (conversationState.hasCompletedTopicLesson && conversationState.notesFlowState === "undecided") {
       actionButtonsEl.append(
-        createActionButton("Yes, I want to take notes", async () => {
-          addMessage("Yes, I want to take notes", "user");
+        createActionButton("Submit notes", async () => {
+          addMessage("Submit notes", "user");
           conversationState.notesFlowState = "taking";
           renderActionButtons();
           await sendAiMessage(
             "Great—submit your notes whenever you're ready. You can send updated notes as many times as you'd like."
           );
         }),
-        createActionButton("No, skip notes", async () => {
-          addMessage("No, skip notes", "user");
-          conversationState.notesFlowState = "skipping";
-          conversationState.canMoveToNextTopic = true;
-          renderActionButtons();
-          await sendAiMessage(
-            hasNextTopic()
-              ? "No problem. Would you like to move on to the next topic?"
-              : "No problem. You've reached the final topic."
-          );
-        })
+        createNextSubjectButton()
       );
       return;
     }
 
-    if (conversationState.canMoveToNextTopic && hasNextTopic()) {
-      actionButtonsEl.appendChild(
-        createActionButton("Next subject", async () => {
-          addMessage("Next subject", "user");
-          conversationState.topicIndex += 1;
-          conversationState.sectionIndex = -1;
-          conversationState.hasCompletedTopicLesson = false;
-          conversationState.canMoveToNextTopic = false;
-          conversationState.notesFlowState = "undecided";
-          conversationState.hasSubmittedNotesForTopic = false;
-          notesInputEl.value = "";
-          setFeedbackButtonState();
-          renderActionButtons();
-          await sendAiMessage(
-            `Are you ready to learn about ${currentTopic().title}?`
-          );
-        })
-      );
+    if (shouldShowNextSubjectButton) {
+      actionButtonsEl.appendChild(createNextSubjectButton());
     }
   }
 
