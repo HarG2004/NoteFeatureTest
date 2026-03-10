@@ -11,7 +11,8 @@
 
   const conversationState = {
     topicIndex: 0,
-    lessonShown: false,
+    sectionIndex: -1,
+    hasCompletedTopicLesson: false,
     hasRequestedFeedbackForTopic: false,
     isSubmittingFeedback: false
   };
@@ -22,6 +23,75 @@
 
   function hasNextTopic() {
     return conversationState.topicIndex < data.topics.length - 1;
+  }
+
+  function getTopicSections(topic) {
+    if (Array.isArray(topic.lessonSections) && topic.lessonSections.length > 0) {
+      return topic.lessonSections;
+    }
+
+    const parser = new window.DOMParser();
+    const doc = parser.parseFromString(topic.lessonHtml, "text/html");
+    const nodes = Array.from(doc.body.children);
+    const sections = [];
+
+    let headingHtml = "";
+    let currentSectionTitle = "";
+    let currentSectionNodes = [];
+
+    nodes.forEach((node) => {
+      if (node.tagName === "H2") {
+        headingHtml = node.outerHTML;
+        return;
+      }
+
+      if (node.tagName === "H3") {
+        if (currentSectionNodes.length > 0) {
+          sections.push({
+            title: currentSectionTitle,
+            html: `${currentSectionNodes.join("")}`
+          });
+        }
+        currentSectionTitle = node.textContent.trim();
+        currentSectionNodes = [node.outerHTML];
+        return;
+      }
+
+      currentSectionNodes.push(node.outerHTML);
+    });
+
+    if (currentSectionNodes.length > 0) {
+      sections.push({
+        title: currentSectionTitle,
+        html: `${currentSectionNodes.join("")}`
+      });
+    }
+
+    if (sections.length === 0) {
+      return [
+        {
+          title: topic.title,
+          html: topic.lessonHtml
+        }
+      ];
+    }
+
+    return sections.map((section, index) => {
+      const sectionHeader = `<p><strong>Section ${index + 1} of ${sections.length}:</strong> ${section.title}</p>`;
+      const topicHeading = index === 0 ? headingHtml : "";
+      return {
+        title: section.title,
+        html: `${topicHeading}${sectionHeader}${section.html}`
+      };
+    });
+  }
+
+  function getCurrentSections() {
+    return getTopicSections(currentTopic());
+  }
+
+  function hasMoreSectionsInTopic() {
+    return conversationState.sectionIndex < getCurrentSections().length - 1;
   }
 
   function randomDelay() {
@@ -96,7 +166,8 @@
 
   function setFeedbackButtonState() {
     const disabled =
-      !conversationState.lessonShown || conversationState.isSubmittingFeedback;
+      !conversationState.hasCompletedTopicLesson ||
+      conversationState.isSubmittingFeedback;
     getFeedbackBtnEl.disabled = disabled;
     notesInputEl.disabled = conversationState.isSubmittingFeedback;
   }
@@ -117,14 +188,36 @@
   function renderActionButtons() {
     clearActionButtons();
 
-    if (!conversationState.lessonShown) {
+    if (conversationState.sectionIndex < 0) {
       actionButtonsEl.appendChild(
         createActionButton("Yes", async () => {
           addMessage("Yes", "user");
-          conversationState.lessonShown = true;
+          conversationState.sectionIndex = 0;
           setFeedbackButtonState();
           renderActionButtons();
-          await sendAiMessage(currentTopic().lessonHtml, { isHtml: true });
+          await sendAiMessage(getCurrentSections()[conversationState.sectionIndex].html, {
+            isHtml: true
+          });
+        })
+      );
+      return;
+    }
+
+    if (!conversationState.hasCompletedTopicLesson && hasMoreSectionsInTopic()) {
+      actionButtonsEl.appendChild(
+        createActionButton("Next section", async () => {
+          addMessage("Next section", "user");
+          conversationState.sectionIndex += 1;
+
+          if (!hasMoreSectionsInTopic()) {
+            conversationState.hasCompletedTopicLesson = true;
+          }
+
+          setFeedbackButtonState();
+          renderActionButtons();
+          await sendAiMessage(getCurrentSections()[conversationState.sectionIndex].html, {
+            isHtml: true
+          });
         })
       );
       return;
@@ -135,7 +228,8 @@
         createActionButton("Next subject", async () => {
           addMessage("Next subject", "user");
           conversationState.topicIndex += 1;
-          conversationState.lessonShown = false;
+          conversationState.sectionIndex = -1;
+          conversationState.hasCompletedTopicLesson = false;
           conversationState.hasRequestedFeedbackForTopic = false;
           notesInputEl.value = "";
           setFeedbackButtonState();
@@ -190,7 +284,7 @@
     event.preventDefault();
 
     const notes = notesInputEl.value.trim();
-    if (!notes || !conversationState.lessonShown) {
+    if (!notes || !conversationState.hasCompletedTopicLesson) {
       return;
     }
 
