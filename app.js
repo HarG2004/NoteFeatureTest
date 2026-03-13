@@ -197,12 +197,25 @@
     return button;
   }
 
+  function formatGuidanceMessage(guidanceSentence) {
+    const trimmedGuidance = (guidanceSentence || "").trim();
+    if (!trimmedGuidance) {
+      return "Guidance: Review the key ideas in this section and note the main points.";
+    }
+
+    if (trimmedGuidance.startsWith("Guidance:")) {
+      return trimmedGuidance;
+    }
+
+    return `Guidance: ${trimmedGuidance}`;
+  }
+
 
   async function sendSectionAndGuidance(section) {
     await sendAiMessage(section.html, {
       isHtml: true
     });
-    await sendAiMessage(section.guidanceSentence);
+    await sendAiMessage(formatGuidanceMessage(section.guidanceSentence));
   }
 
   async function sendTopicCompletionPromptIfNeeded() {
