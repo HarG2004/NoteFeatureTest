@@ -29,7 +29,12 @@
 
   function getTopicSections(topic) {
     if (Array.isArray(topic.lessonSections) && topic.lessonSections.length > 0) {
-      return topic.lessonSections;
+      return topic.lessonSections.map((section, index) => ({
+        sectionTitle: section.sectionTitle,
+        sectionContentHtml: section.sectionContentHtml,
+        guidanceSentence: section.guidanceSentence,
+        html: `<p><strong>Section ${index + 1} of ${topic.lessonSections.length}:</strong> ${section.sectionTitle}</p>${section.sectionContentHtml}`
+      }));
     }
 
     const parser = new window.DOMParser();
@@ -50,8 +55,9 @@
       if (node.tagName === "H3") {
         if (currentSectionNodes.length > 0) {
           sections.push({
-            title: currentSectionTitle,
-            html: `${currentSectionNodes.join("")}`
+            sectionTitle: currentSectionTitle,
+            sectionContentHtml: `${currentSectionNodes.join("")}`,
+            guidanceSentence: "Review the key ideas in this section and note the main points."
           });
         }
         currentSectionTitle = node.textContent.trim();
@@ -64,26 +70,30 @@
 
     if (currentSectionNodes.length > 0) {
       sections.push({
-        title: currentSectionTitle,
-        html: `${currentSectionNodes.join("")}`
+        sectionTitle: currentSectionTitle,
+        sectionContentHtml: `${currentSectionNodes.join("")}`,
+        guidanceSentence: "Review the key ideas in this section and note the main points."
       });
     }
 
     if (sections.length === 0) {
       return [
         {
-          title: topic.title,
-          html: topic.lessonHtml
+          sectionTitle: topic.title,
+          sectionContentHtml: topic.lessonHtml,
+          guidanceSentence: "Review the key ideas in this section and note the main points."
         }
       ];
     }
 
     return sections.map((section, index) => {
-      const sectionHeader = `<p><strong>Section ${index + 1} of ${sections.length}:</strong> ${section.title}</p>`;
+      const sectionHeader = `<p><strong>Section ${index + 1} of ${sections.length}:</strong> ${section.sectionTitle}</p>`;
       const topicHeading = index === 0 ? headingHtml : "";
       return {
-        title: section.title,
-        html: `${topicHeading}${sectionHeader}${section.html}`
+        sectionTitle: section.sectionTitle,
+        sectionContentHtml: section.sectionContentHtml,
+        guidanceSentence: section.guidanceSentence,
+        html: `${topicHeading}${sectionHeader}${section.sectionContentHtml}`
       };
     });
   }
@@ -187,6 +197,14 @@
     return button;
   }
 
+
+  async function sendSectionAndGuidance(section) {
+    await sendAiMessage(section.html, {
+      isHtml: true
+    });
+    await sendAiMessage(section.guidanceSentence);
+  }
+
   async function sendTopicCompletionPromptIfNeeded() {
     if (!hasMoreSectionsInTopic()) {
       conversationState.hasCompletedTopicLesson = true;
@@ -224,9 +242,7 @@
           conversationState.sectionIndex = 0;
           setFeedbackButtonState();
           renderActionButtons();
-          await sendAiMessage(getCurrentSections()[conversationState.sectionIndex].html, {
-            isHtml: true
-          });
+          await sendSectionAndGuidance(getCurrentSections()[conversationState.sectionIndex]);
           await sendTopicCompletionPromptIfNeeded();
           setFeedbackButtonState();
           renderActionButtons();
@@ -243,9 +259,7 @@
 
           setFeedbackButtonState();
           renderActionButtons();
-          await sendAiMessage(getCurrentSections()[conversationState.sectionIndex].html, {
-            isHtml: true
-          });
+          await sendSectionAndGuidance(getCurrentSections()[conversationState.sectionIndex]);
           await sendTopicCompletionPromptIfNeeded();
           setFeedbackButtonState();
           renderActionButtons();
