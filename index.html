@@ -24,8 +24,13 @@
         <h2 id="notesHeading">Your Notes</h2>
         <p>Write notes about the lesson, then ask for AI feedback.</p>
         <form id="notesForm" class="notes-form">
+          <div class="scope-control">
+            <label for="notesScopeSelect">Review notes against</label>
+            <select id="notesScopeSelect" name="notesScopeSelect"></select>
+            <p id="scopeHint" class="scope-hint"></p>
+          </div>
           <label for="notesInput" class="sr-only">Write your notes</label>
-          <textarea id="notesInput" placeholder="Type your notes for this topic..."></textarea>
+          <textarea id="notesInput" placeholder="Type your notes for this topic or section..."></textarea>
           <button id="getFeedbackBtn" type="submit">Get AI feedback</button>
         </form>
       </aside>

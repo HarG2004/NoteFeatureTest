@@ -249,6 +249,29 @@ body {
   gap: 0.7rem;
 }
 
+.scope-control {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.scope-control label {
+  font-weight: 600;
+}
+
+#notesScopeSelect {
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  padding: 0.7rem 0.75rem;
+  font: inherit;
+  background: #fff;
+}
+
+.scope-hint {
+  margin-bottom: 0;
+  font-size: 0.92rem;
+}
+
 #notesInput {
   width: 100%;
   min-height: 300px;
@@ -276,6 +299,7 @@ body {
 
 button:focus-visible,
 #notesInput:focus-visible,
+#notesScopeSelect:focus-visible,
 .feedback-actions a:focus-visible {
   outline: 2px solid var(--brand);
   outline-offset: 2px;
