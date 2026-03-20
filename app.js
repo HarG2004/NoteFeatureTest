@@ -5,6 +5,8 @@
   const actionButtonsEl = document.getElementById("actionButtons");
   const notesFormEl = document.getElementById("notesForm");
   const notesInputEl = document.getElementById("notesInput");
+  const notesScopeSelectEl = document.getElementById("notesScopeSelect");
+  const scopeHintEl = document.getElementById("scopeHint");
   const getFeedbackBtnEl = document.getElementById("getFeedbackBtn");
   const feedbackIframeEl = document.getElementById("feedbackIframe");
   const feedbackOpenLinkEl = document.getElementById("feedbackOpenLink");
@@ -16,7 +18,8 @@
     canMoveToNextTopic: false,
     notesFlowState: "undecided",
     hasSubmittedNotesForTopic: false,
-    isSubmittingFeedback: false
+    isSubmittingFeedback: false,
+    selectedNotesScope: "topic"
   };
 
   function currentTopic() {
@@ -176,12 +179,75 @@
     addMessage(content, "ai", options);
   }
 
+  function getSelectedScopeDetails() {
+    const sections = getCurrentSections();
+    if (conversationState.selectedNotesScope === "topic") {
+      return {
+        scope: "topic",
+        label: `Whole topic: ${currentTopic().title}`,
+        description: `Feedback will use all sections in ${currentTopic().title}.`
+      };
+    }
+
+    const sectionIndex = Number.parseInt(
+      conversationState.selectedNotesScope.replace("section-", ""),
+      10
+    );
+    const selectedSection = sections[sectionIndex];
+
+    if (!selectedSection) {
+      return {
+        scope: "topic",
+        label: `Whole topic: ${currentTopic().title}`,
+        description: `Feedback will use all sections in ${currentTopic().title}.`
+      };
+    }
+
+    return {
+      scope: "section",
+      sectionIndex,
+      sectionTitle: selectedSection.sectionTitle,
+      label: `Section ${sectionIndex + 1}: ${selectedSection.sectionTitle}`,
+      description: `Feedback will only use Section ${sectionIndex + 1} of ${currentTopic().title}.`
+    };
+  }
+
+  function updateScopeHint() {
+    const details = getSelectedScopeDetails();
+    scopeHintEl.textContent = details.description;
+  }
+
+  function populateNotesScopeOptions() {
+    const topic = currentTopic();
+    const sections = getCurrentSections();
+
+    notesScopeSelectEl.innerHTML = "";
+
+    const topicOption = document.createElement("option");
+    topicOption.value = "topic";
+    topicOption.textContent = `Whole topic: ${topic.title}`;
+    notesScopeSelectEl.appendChild(topicOption);
+
+    sections.forEach((section, index) => {
+      const option = document.createElement("option");
+      option.value = `section-${index}`;
+      option.textContent = `Section ${index + 1}: ${section.sectionTitle}`;
+      notesScopeSelectEl.appendChild(option);
+    });
+
+    if (!Array.from(notesScopeSelectEl.options).some((option) => option.value === conversationState.selectedNotesScope)) {
+      conversationState.selectedNotesScope = "topic";
+    }
+
+    notesScopeSelectEl.value = conversationState.selectedNotesScope;
+    updateScopeHint();
+  }
+
   function setFeedbackButtonState() {
-    const disabled =
-      !conversationState.hasCompletedTopicLesson ||
-      conversationState.isSubmittingFeedback;
-    getFeedbackBtnEl.disabled = disabled;
+    const hasNotes = Boolean(notesInputEl.value.trim());
+    getFeedbackBtnEl.disabled = !hasNotes || conversationState.isSubmittingFeedback;
     notesInputEl.disabled = conversationState.isSubmittingFeedback;
+    notesScopeSelectEl.disabled = conversationState.isSubmittingFeedback;
   }
 
   function clearActionButtons() {
@@ -210,7 +276,6 @@
     return `Guidance: ${trimmedGuidance}`;
   }
 
-
   async function sendSectionAndGuidance(section) {
     await sendAiMessage(section.html, {
       isHtml: true
@@ -222,29 +287,35 @@
     if (!hasMoreSectionsInTopic()) {
       conversationState.hasCompletedTopicLesson = true;
       await sendAiMessage(
-        "Would you like to submit your notes or move onto the next subject?"
+        "You can submit notes now for the whole topic or just the section you choose in the dropdown. You can also move onto the next subject whenever you're ready."
       );
     }
+  }
+
+  function resetTopicState() {
+    conversationState.sectionIndex = -1;
+    conversationState.hasCompletedTopicLesson = false;
+    conversationState.canMoveToNextTopic = false;
+    conversationState.notesFlowState = "undecided";
+    conversationState.hasSubmittedNotesForTopic = false;
+    conversationState.selectedNotesScope = "topic";
+    notesInputEl.value = "";
+    populateNotesScopeOptions();
+    setFeedbackButtonState();
+    renderActionButtons();
   }
 
   function renderActionButtons() {
     clearActionButtons();
 
     const shouldShowNextSubjectButton =
-      conversationState.hasCompletedTopicLesson && hasNextTopic();
+      (conversationState.hasCompletedTopicLesson || conversationState.hasSubmittedNotesForTopic) && hasNextTopic();
 
     const createNextSubjectButton = () =>
       createActionButton("Next subject", async () => {
         addMessage("Next subject", "user");
         conversationState.topicIndex += 1;
-        conversationState.sectionIndex = -1;
-        conversationState.hasCompletedTopicLesson = false;
-        conversationState.canMoveToNextTopic = false;
-        conversationState.notesFlowState = "undecided";
-        conversationState.hasSubmittedNotesForTopic = false;
-        notesInputEl.value = "";
-        setFeedbackButtonState();
-        renderActionButtons();
+        resetTopicState();
         await sendAiMessage(`Are you ready to learn about ${currentTopic().title}?`);
       });
 
@@ -278,22 +349,19 @@
           renderActionButtons();
         })
       );
-      return;
     }
 
-    if (conversationState.hasCompletedTopicLesson && conversationState.notesFlowState === "undecided") {
-      actionButtonsEl.append(
+    if (conversationState.notesFlowState === "undecided") {
+      actionButtonsEl.appendChild(
         createActionButton("Submit notes", async () => {
           addMessage("Submit notes", "user");
           conversationState.notesFlowState = "taking";
           renderActionButtons();
           await sendAiMessage(
-            "Great—submit your notes whenever you're ready. You can send updated notes as many times as you'd like."
+            "Great—submit your notes whenever you're ready. Use the dropdown to choose whether I should review the whole topic or just the current section."
           );
-        }),
-        createNextSubjectButton()
+        })
       );
-      return;
     }
 
     if (shouldShowNextSubjectButton) {
@@ -301,7 +369,7 @@
     }
   }
 
-  async function fetchFeedbackFromApi(notes, topicId) {
+  async function fetchFeedbackFromApi(notes, topicId, scopeDetails) {
     const response = await fetch("/api/feedback", {
       method: "POST",
       headers: {
@@ -309,7 +377,8 @@
       },
       body: JSON.stringify({
         topicId,
-        notes
+        notes,
+        scope: scopeDetails
       })
     });
 
@@ -343,28 +412,29 @@
     event.preventDefault();
 
     const notes = notesInputEl.value.trim();
-    if (!notes || !conversationState.hasCompletedTopicLesson) {
+    if (!notes) {
       return;
     }
 
-    addMessage(notes, "user");
+    const scopeDetails = getSelectedScopeDetails();
+    addMessage(`${notes}\n\nReview scope: ${scopeDetails.label}`, "user");
 
     conversationState.isSubmittingFeedback = true;
     setFeedbackButtonState();
 
     try {
-      const feedback = await fetchFeedbackFromApi(notes, currentTopic().id);
+      const feedback = await fetchFeedbackFromApi(notes, currentTopic().id, scopeDetails);
       conversationState.notesFlowState = "taking";
       conversationState.hasSubmittedNotesForTopic = true;
       conversationState.canMoveToNextTopic = true;
       await sendAiMessage(feedback);
       if (hasNextTopic()) {
         await sendAiMessage(
-          "Would you like to move on to the next topic? You can also resubmit notes if you want more feedback."
+          "Would you like to move on to the next topic? You can also change the dropdown selection and resubmit notes whenever you want."
         );
       } else {
         await sendAiMessage(
-          "Nice work finishing the last topic. You can still resubmit notes if you want more feedback."
+          "Nice work finishing the last topic. You can still change the dropdown selection and resubmit notes whenever you want."
         );
       }
       renderActionButtons();
@@ -380,6 +450,12 @@
 
   async function init() {
     wireGoogleFormValues();
+    populateNotesScopeOptions();
+    notesScopeSelectEl.addEventListener("change", (event) => {
+      conversationState.selectedNotesScope = event.target.value;
+      updateScopeHint();
+    });
+    notesInputEl.addEventListener("input", setFeedbackButtonState);
     notesFormEl.addEventListener("submit", onNotesSubmit);
     setFeedbackButtonState();
     renderActionButtons();
